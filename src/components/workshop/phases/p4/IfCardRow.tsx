@@ -2,6 +2,7 @@
    lanes: each lane has a colored left rail, its simple cards, and a `+ card`
    adder (disabled at 3). No nesting — branch cards are always simple. */
 
+import { useI18n } from "#/lib/i18n/context";
 import {
     BLOCK_CHIP_CLASS,
     CARDS,
@@ -94,6 +95,7 @@ function BranchLane({
     active?: boolean;
     onChange: (cards: SimpleCard[]) => void;
 }) {
+    const { t } = useI18n();
     const railColor = which === "then" ? "#3f6f52" : "#7a3f3f";
     const full = cards.length >= 3;
     const update = (i: number, c: SimpleCard) =>
@@ -112,10 +114,12 @@ function BranchLane({
             }}
         >
             <div className="mb-1 flex items-center gap-1.5 font-mono text-[11px] tracking-wide text-muted uppercase">
-                {which === "then" ? "then 分支" : "else 分支"}
+                {which === "then"
+                    ? t("p4.if.thenBranch")
+                    : t("p4.if.elseBranch")}
                 {active && (
                     <span className="rounded bg-accent/20 px-1 font-semibold text-accent normal-case">
-                        本輪有執行
+                        {t("p4.if.ranThisRound")}
                     </span>
                 )}
             </div>
@@ -164,7 +168,9 @@ function BranchLane({
                                 : "text-muted hover:border-accent hover:text-fg"
                         }`}
                         title={
-                            full ? "分支已滿（最多 3 張卡）" : `新增${def.n}`
+                            full
+                                ? t("p4.if.branchFull")
+                                : t("p4.if.addCard", { name: def.n })
                         }
                     >
                         + {def.n}
@@ -193,6 +199,7 @@ export function IfCardRow({
     onRemove: () => void;
     onReorder: (e: React.PointerEvent) => void;
 }) {
+    const { t } = useI18n();
     const col = CAT_COLORS.logic;
     return (
         <div
@@ -206,7 +213,7 @@ export function IfCardRow({
                 <span
                     onPointerDown={onReorder}
                     className="cursor-grab touch-none px-0.5 text-sm leading-none text-white/50 select-none"
-                    title="拖曳重新排序"
+                    title={t("p4.card.dragReorder")}
                 >
                     ⠿
                 </span>

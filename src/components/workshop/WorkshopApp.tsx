@@ -1,6 +1,7 @@
 import { AppShell } from "./AppShell";
 import { JoinScreen } from "./JoinScreen";
 import { WorkshopProvider } from "#/state/WorkshopContext";
+import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 import { PHASES } from "#/lib/workshop/constants";
 import type { Phase } from "#/lib/workshop/types";
@@ -29,6 +30,7 @@ function Screen({ preview }: { preview: Phase | null }) {
     clears automatically the moment the /state poll reaches the server again. */
 function DisconnectGuard() {
     const { online } = useWorkshop();
+    const { t } = useI18n();
     if (online) return null;
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-bg/85 backdrop-blur-sm">
@@ -37,10 +39,10 @@ function DisconnectGuard() {
                     <span className="h-2.5 w-2.5 rounded-full bg-warning motion-safe:animate-pulse" />
                 </div>
                 <h2 className="font-display text-lg font-semibold text-fg">
-                    重新連線中…
+                    {t("workshop.disconnect.title")}
                 </h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                    與工作坊房間的連線中斷了。請稍等，重新連上房間後畫面會自動解鎖。
+                    {t("workshop.disconnect.body")}
                 </p>
             </div>
         </div>
@@ -53,6 +55,7 @@ function DisconnectGuard() {
     clears automatically once the survey is imported. */
 function RoomWaitingGuard() {
     const { online, waiting } = useWorkshop();
+    const { t } = useI18n();
     if (!online || !waiting) return null;
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-bg/85 backdrop-blur-sm">
@@ -61,10 +64,10 @@ function RoomWaitingGuard() {
                     <span className="h-2.5 w-2.5 rounded-full bg-accent motion-safe:animate-pulse" />
                 </div>
                 <h2 className="font-display text-lg font-semibold text-fg">
-                    等待房間開放
+                    {t("workshop.waiting.title")}
                 </h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                    工作坊還沒開始。主持人載入今天的資料後，這個畫面會自動開啟。
+                    {t("workshop.waiting.body")}
                 </p>
             </div>
         </div>

@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 
+import { useI18n } from "#/lib/i18n/context";
 import {
     BLOCK_CHIP_CLASS,
     CARD_BY_TYPE,
@@ -89,9 +90,10 @@ function DirParamPill({
     slotTypes: Record<VarSlot, SlotType>;
     onChange: (p: DirParam) => void;
 }) {
+    const { t } = useI18n();
     const label =
         value.k === "randomDir"
-            ? "🎲 隨機"
+            ? t("p4.param.random")
             : value.k === "var"
               ? `${value.slot} ➤`
               : dirLabel(value.d);
@@ -183,11 +185,12 @@ function SimpleParams({
     varNames?: Record<VarSlot, string>;
     onChange: (c: SimpleCard) => void;
 }) {
+    const { t } = useI18n();
     switch (card.t) {
         case "look": {
             const label =
                 card.at === "here"
-                    ? "這裡"
+                    ? t("p4.param.here")
                     : card.at.k === "var"
                       ? `${card.at.slot} ➤`
                       : dirLabel(card.at.d);
@@ -221,7 +224,7 @@ function SimpleParams({
                                     }}
                                 />
                                 <div className="mt-1.5 max-w-[150px] text-[9px] leading-tight text-muted">
-                                    偷看一步外的位置，但不會移動你
+                                    {t("p4.param.lookHint")}
                                 </div>
                             </div>
                         )}
@@ -312,11 +315,12 @@ function SetValuePill({
     slotTypes: Record<VarSlot, SlotType>;
     onChange: (v: SetValue) => void;
 }) {
+    const { t } = useI18n();
     const label =
         value.k === "dir"
             ? dirLabel(value.d)
             : value.k === "randomDir"
-              ? "🎲 隨機方向"
+              ? t("p4.param.randomDir")
               : numExprLabel(value);
     return (
         <SlotPill
@@ -332,7 +336,7 @@ function SetValuePill({
                     />
                     <div className="mt-2 border-t border-border/50 pt-2">
                         <div className="mb-1 font-mono text-[9px] tracking-wide text-muted uppercase">
-                            方向
+                            {t("p4.param.dir")}
                         </div>
                         <CompassRose
                             center="blank"
@@ -379,6 +383,7 @@ export function CardRow({
       undefined = no run on screen — no tint). */
     takenThen?: boolean;
 }) {
+    const { t } = useI18n();
     if (card.t === "if") {
         return (
             <IfCardRow
@@ -403,7 +408,7 @@ export function CardRow({
             <span
                 onPointerDown={onReorder}
                 className="cursor-grab touch-none px-0.5 text-sm leading-none text-white/50 select-none"
-                title="拖曳重新排序"
+                title={t("p4.card.dragReorder")}
             >
                 ⠿
             </span>
@@ -420,7 +425,7 @@ export function CardRow({
             <button
                 type="button"
                 onClick={onRemove}
-                title="移除"
+                title={t("p4.card.remove")}
                 className="-my-2 -mr-2 flex h-8 w-8 shrink-0 items-center justify-center text-sm text-white/50 hover:text-white"
             >
                 ×

@@ -4,8 +4,14 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
+import { getInitialLocaleFn } from "#/lib/i18n/fn";
+import { DEFAULT_LOCALE, htmlLang } from "#/lib/i18n";
 
 export const Route = createRootRoute({
+    // Resolve the locale on the server (cookie → Accept-Language → default) and
+    // stash it in root context, so <html lang> and every route's LocaleProvider
+    // seed the right language on the first paint — no flash.
+    beforeLoad: async () => ({ locale: await getInitialLocaleFn() }),
     head: () => ({
         meta: [
             {
@@ -48,8 +54,12 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+    // useRouteContext is a router-store read (not a React state hook), so it's
+    // safe in the shell — which renders above the <Outlet> hooks boundary. Used
+    // only to stamp the server-resolved <html lang>.
+    const { locale } = Route.useRouteContext();
     return (
-        <html lang="en">
+        <html lang={htmlLang(locale ?? DEFAULT_LOCALE)}>
             <head>
                 <HeadContent />
             </head>

@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useI18n } from "#/lib/i18n/context";
 import { DIR_ARROW, VAR_COLORS } from "#/lib/workshop/blocks";
 import type { Dir8, StageRunResult, VarSlot } from "#/lib/workshop/types";
 
@@ -72,13 +73,14 @@ export function VarWatchPanel({
     slotTypes: Record<VarSlot, SlotType>;
     names: Record<VarSlot, string>;
 }) {
+    const { t } = useI18n();
     if (!result || usedSlots.length === 0) return null;
     const frames = result.frames;
     const fr = frames[Math.max(0, Math.min(step, frames.length - 1))];
     return (
         <div className="rounded-md border border-border bg-bg/80 px-3 py-2 backdrop-blur-sm">
             <div className="mb-1 font-mono text-[9px] tracking-wide text-muted uppercase">
-                變數監看
+                {t("p4.watch.title")}
             </div>
             {usedSlots.map((slot) => (
                 <WatchRow
@@ -89,9 +91,12 @@ export function VarWatchPanel({
                 />
             ))}
             <div className="mt-1 border-t border-border/40 pt-1">
-                <WatchRow label="最佳讀數" value={fr.best.toFixed(3)} />
                 <WatchRow
-                    label="距離最佳已有幾輪"
+                    label={t("p4.watch.best")}
+                    value={fr.best.toFixed(3)}
+                />
+                <WatchRow
+                    label={t("p4.watch.sinceBest")}
                     value={String(fr.sinceBest)}
                 />
             </div>

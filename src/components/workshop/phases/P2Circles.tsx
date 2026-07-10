@@ -50,6 +50,7 @@ import type {
     DataPoint,
     FeatureKey,
 } from "#/lib/workshop/types";
+import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 
 type Pt = { x: number; y: number };
@@ -124,6 +125,7 @@ function drawBoundary(
 }
 
 export function P2Circles() {
+    const { t } = useI18n();
     const { config, points, reveals, service, store, patch, caps } =
         useWorkshop();
     const s = store.p2;
@@ -703,7 +705,7 @@ export function P2Circles() {
                 lossVisible: res.loss_visible ?? null,
             });
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "送出被拒絕");
+            toast.error(e instanceof Error ? e.message : t("p2.toast.rejected"));
         } finally {
             setSubmitting(false);
         }
@@ -757,7 +759,7 @@ export function P2Circles() {
                 <Island className="overflow-hidden">
                     <button
                         type="button"
-                        aria-label="拖曳面板，點兩下重設位置"
+                        aria-label={t("p2.panel.grip")}
                         onPointerDown={onPanelGrip}
                         onDoubleClick={() => setPanelPos({ x: 0, y: 0 })}
                         className="flex w-full touch-none cursor-grab items-center justify-center py-1.5 transition-colors hover:bg-border/30 active:cursor-grabbing"
@@ -769,7 +771,7 @@ export function P2Circles() {
               the first submission comes back). */}
                         <div className="flex items-stretch gap-3">
                             <div className="flex-1">
-                                <MicroLabel>已知資料</MicroLabel>
+                                <MicroLabel>{t("p2.panel.known")}</MicroLabel>
                                 <div className="mt-0.5 font-mono text-2xl font-semibold text-fg">
                                     {(visAcc * 100).toFixed(1)}%
                                 </div>
@@ -783,7 +785,7 @@ export function P2Circles() {
                                 )}
                             </div>
                             <div className="flex-1 border-l border-border/40 pl-3">
-                                <MicroLabel>測試資料</MicroLabel>
+                                <MicroLabel>{t("p2.panel.test")}</MicroLabel>
                                 <div
                                     className={`mt-0.5 font-mono text-2xl font-semibold ${
                                         s.full == null
@@ -826,7 +828,9 @@ export function P2Circles() {
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="font-mono text-[11px] font-bold text-fg">
-                                                        視角 {i + 1}
+                                                        {t("p2.view.name", {
+                                                            n: i + 1,
+                                                        })}
                                                     </span>
                                                     <span className="truncate text-[10px] text-muted">
                                                         {
@@ -842,8 +846,10 @@ export function P2Circles() {
                                                 </div>
                                                 <div className="mt-0.5 flex items-center gap-2.5 text-[10px] text-muted">
                                                     <span>
-                                                        {v.circles.length}{" "}
-                                                        個區域
+                                                        {t("p2.view.regions", {
+                                                            count: v.circles
+                                                                .length,
+                                                        })}
                                                     </span>
                                                     <span className="font-mono">
                                                         {(
@@ -857,7 +863,10 @@ export function P2Circles() {
                                                 <span
                                                     role="button"
                                                     tabIndex={-1}
-                                                    aria-label={`刪除視角 ${i + 1}`}
+                                                    aria-label={t(
+                                                        "p2.view.delete",
+                                                        { n: i + 1 }
+                                                    )}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         deleteView(i);
@@ -875,7 +884,7 @@ export function P2Circles() {
                                     onClick={addView}
                                     className="flex w-full justify-center py-1.5 text-[11px] font-semibold"
                                 >
-                                    + 新增視角
+                                    {t("p2.view.add")}
                                 </GhostButton>
                             </div>
                         )}
@@ -912,10 +921,10 @@ export function P2Circles() {
                                 className="flex-1 py-2 text-[13px]"
                             >
                                 {submitting
-                                    ? "評分中…"
+                                    ? t("p2.submit.judging")
                                     : left <= 0
-                                      ? "沒有剩餘機會"
-                                      : "送出評分"}
+                                      ? t("p2.submit.noAttempts")
+                                      : t("p2.submit.go")}
                             </PrimaryButton>
                             <span className="font-mono text-[11px] tracking-wide text-muted uppercase">
                                 {String(s.attempt).padStart(2, "0")}/{cap}
@@ -930,7 +939,7 @@ export function P2Circles() {
                 {!lineMode && (
                     <>
                         <SegmentedControl
-                            ariaLabel="筆刷類別"
+                            ariaLabel={t("p2.brush.aria")}
                             value={String(s.brush)}
                             onChange={(v) =>
                                 setBrushOrRecolor(Number(v) as ClassLabel)
@@ -938,22 +947,22 @@ export function P2Circles() {
                             options={[
                                 {
                                     value: "1",
-                                    label: "夜貓",
+                                    label: t("p2.class.owl"),
                                     dotClass: "bg-accent3",
                                 },
                                 {
                                     value: "0",
-                                    label: "早起",
+                                    label: t("p2.class.early"),
                                     dotClass: "bg-accent2",
                                 },
                             ]}
                         />
                         <DockDivider />
                         <div className="flex items-center gap-1.5">
-                            <MicroLabel>未覆蓋</MicroLabel>
+                            <MicroLabel>{t("p2.default.label")}</MicroLabel>
                             <SegmentedControl
                                 size="sm"
-                                ariaLabel="未覆蓋區域的預設類別"
+                                ariaLabel={t("p2.default.aria")}
                                 value={String(s.defaultCls)}
                                 onChange={(v) =>
                                     patch("p2", {
@@ -961,8 +970,8 @@ export function P2Circles() {
                                     })
                                 }
                                 options={[
-                                    { value: "1", label: "夜貓" },
-                                    { value: "0", label: "早起" },
+                                    { value: "1", label: t("p2.class.owl") },
+                                    { value: "0", label: t("p2.class.early") },
                                 ]}
                             />
                         </div>
@@ -999,19 +1008,19 @@ export function P2Circles() {
                 </div>
                 <DockDivider />
                 <div className="flex items-center gap-2">
-                    <MicroLabel>預覽</MicroLabel>
+                    <MicroLabel>{t("p2.preview.label")}</MicroLabel>
                     <button
                         type="button"
                         role="switch"
                         aria-checked={s.preview}
-                        aria-label="預覽預測結果"
+                        aria-label={t("p2.preview.aria")}
                         onClick={() =>
                             patch("p2", (st) => ({ preview: !st.preview }))
                         }
                         title={
                             lineMode
-                                ? "依照線性模型的預測重新上色"
-                                : "依照合併後多數決的預測重新上色"
+                                ? t("p2.preview.titleLine")
+                                : t("p2.preview.titleLasso")
                         }
                         className={`relative inline-flex h-[18px] w-[30px] shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                             s.preview ? "bg-accent" : "bg-border"
@@ -1029,7 +1038,9 @@ export function P2Circles() {
                 {!lineMode && (
                     <>
                         <DockDivider />
-                        <GhostButton onClick={clearActive}>清除</GhostButton>
+                        <GhostButton onClick={clearActive}>
+                            {t("p2.clear")}
+                        </GhostButton>
                     </>
                 )}
             </Dock>

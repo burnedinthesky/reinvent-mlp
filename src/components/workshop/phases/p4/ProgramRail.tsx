@@ -8,6 +8,8 @@
 
 import { useRef, useState } from "react";
 
+import { useI18n } from "#/lib/i18n/context";
+import type { MessageKey } from "#/lib/i18n/messages";
 import { LR_PRESETS } from "#/lib/workshop/blocks";
 import type { Card, LrPreset, Setup, VarSlot } from "#/lib/workshop/types";
 
@@ -22,13 +24,14 @@ const BRACKET = "#4a6b96";
 const BIG_PILL_CLASS =
     "inline-flex items-center gap-1.5 rounded-md bg-black/30 px-3 py-1.5 font-mono text-[13px] font-bold text-fg hover:bg-black/45";
 
-/** per-preset flavor notes for the step-size popover (0.1 careful … 2.0 reckless). */
-const LR_NOTES: Record<string, string> = {
-    "0.1": "細心",
-    "0.25": "謹慎",
-    "0.5": "穩定",
-    "1": "大膽",
-    "2": "冒險",
+/** per-preset flavor-note message keys for the step-size popover
+    (0.1 careful … 2.0 reckless). Resolved through t() at render time. */
+const LR_NOTE_KEYS: Record<string, MessageKey> = {
+    "0.1": "p4.rail.lrNote.careful",
+    "0.25": "p4.rail.lrNote.cautious",
+    "0.5": "p4.rail.lrNote.steady",
+    "1": "p4.rail.lrNote.bold",
+    "2": "p4.rail.lrNote.reckless",
 };
 
 /** one full-width setup block: icon + label + big value pill, explainer under. */
@@ -94,6 +97,7 @@ export function ProgramRail({
     onRemoveCard: (i: number) => void;
     onReorder: (from: number, to: number) => void;
 }) {
+    const { t } = useI18n();
     const rowRefs = useRef<(HTMLElement | null)[]>([]);
     const [dragIdx, setDragIdx] = useState<number | null>(null);
     const [dropIdx, setDropIdx] = useState<number | null>(null);
@@ -140,25 +144,29 @@ export function ProgramRail({
             {/* ---- setup block: step size (start is always random — no picker) ---- */}
             <SetupBlock
                 icon="👟"
-                label="步長"
-                suffix="(= 學習率)"
-                explainer="每個 epoch 中，一次移動會走多遠"
+                label={t("p4.rail.stepSize")}
+                suffix={t("p4.rail.stepSizeSuffix")}
+                explainer={t("p4.rail.stepSizeExplainer")}
                 pill={String(setup.lr)}
                 render={(close) => (
                     <div>
                         <FactorPicker
                             options={LR_PRESETS}
-                            format={(lr) =>
-                                `${lr}  ${LR_NOTES[String(lr)] ?? ""}`
-                            }
+                            format={(lr) => {
+                                const noteKey = LR_NOTE_KEYS[String(lr)];
+                                return `${lr}  ${noteKey ? t(noteKey) : ""}`;
+                            }}
                             onPick={(lr: LrPreset) => {
                                 onSetup({ ...setup, lr });
                                 close();
                             }}
                         />
                         <div className="mt-1.5 max-w-[170px] border-t border-border/50 pt-1.5 text-[9px] leading-tight text-muted">
-                            <em>步長</em>就是 ML 裡所說的{" "}
-                            <strong>學習率</strong>
+                            {t("p4.rail.lrHint.before")}
+                            <em>{t("p4.rail.stepSize")}</em>
+                            {t("p4.rail.lrHint.mid")}
+                            <strong>{t("p4.rail.lrHint.term")}</strong>
+                            {t("p4.rail.lrHint.after")}
                         </div>
                     </div>
                 )}
@@ -171,10 +179,10 @@ export function ProgramRail({
                         className="font-mono text-[12px] font-bold tracking-wider"
                         style={{ color: BRACKET }}
                     >
-                        🔁 重複 ×100
+                        {t("p4.rail.repeat")}
                     </span>
                     <span className="font-mono text-[10px] text-muted">
-                        — 跑一輪 = 一個 epoch
+                        {t("p4.rail.repeatNote")}
                     </span>
                 </div>
                 <div
@@ -183,7 +191,7 @@ export function ProgramRail({
                 >
                     {loop.length === 0 && (
                         <div className="mt-1 rounded-md border-[1.5px] border-dashed border-border py-3 text-center font-mono text-[10px] text-muted">
-                            迴圈是空的，從下方新增卡片
+                            {t("p4.rail.emptyLoop")}
                         </div>
                     )}
                     {loop.map((card, i) => {
@@ -224,7 +232,7 @@ export function ProgramRail({
                         aria-hidden
                     />
                     <span className="ml-2 font-mono text-[10px] font-semibold text-muted">
-                        ↺ 回到最上方，進入下一個 epoch
+                        {t("p4.rail.loopBack")}
                     </span>
                 </div>
             </div>
@@ -233,14 +241,15 @@ export function ProgramRail({
             <div className="mt-3 border-t border-border/70 pt-2">
                 <div className="font-mono text-[11px] leading-snug">
                     <span className="font-bold tracking-wider text-fg">
-                        🏁 評分
+                        {t("p4.rail.score")}
                     </span>
                     <span className="text-muted">
                         {" "}
-                        — 裁判會讀取你終點位置的
+                        {t("p4.rail.scoreNote")}
                         <span className="font-semibold text-accent">
-                            真實 loss
+                            {t("p4.rail.trueLoss")}
                         </span>
+                        {t("p4.rail.scoreNoteAfter")}
                     </span>
                 </div>
             </div>

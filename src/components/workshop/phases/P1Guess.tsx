@@ -17,9 +17,11 @@ import {
 import { formatFeature } from "#/lib/workshop/features";
 import { GUESS_CAP } from "#/lib/workshop/constants";
 import type { ClassLabel, FeatureKey, RealRow } from "#/lib/workshop/types";
+import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 
 export function P1Guess() {
+    const { t } = useI18n();
     const { config, realRows, service, store, patch, caps } = useWorkshop();
     const s = store.p1;
 
@@ -106,10 +108,9 @@ export function P1Guess() {
         if (
             sentRef.current.has(sig) &&
             !(await confirm({
-                title: "要再次送出這組標籤嗎？",
-                message:
-                    "你已經送出過完全相同的一組標籤。再次送出仍然會消耗一次機會。",
-                confirmLabel: "仍然送出",
+                title: t("p1.confirm.title"),
+                message: t("p1.confirm.message"),
+                confirmLabel: t("p1.confirm.ok"),
             }))
         )
             return;
@@ -124,7 +125,7 @@ export function P1Guess() {
             }));
             setHistView(-1);
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "送出被拒絕");
+            toast.error(e instanceof Error ? e.message : t("p1.toast.rejected"));
         } finally {
             setSubmitting(false);
         }
@@ -140,10 +141,10 @@ export function P1Guess() {
             {/* header */}
             <div className="mb-4">
                 <MicroLabel accent className="mb-1.5 block text-[11px]">
-                    Phase 01 · 猜猜類別
+                    {t("p1.micro")}
                 </MicroLabel>
                 <h2 className="font-display text-2xl font-bold tracking-tight text-fg">
-                    誰是夜貓子？
+                    {t("p1.title")}
                 </h2>
             </div>
 
@@ -151,7 +152,7 @@ export function P1Guess() {
           submission the ‹ › arrows browse the per-attempt history. */}
             {hist.length > 0 && (
                 <StatCard
-                    label="你的分數"
+                    label={t("p1.score")}
                     value={`${hist[shownIdx].toFixed(1)}%`}
                     accent
                     className="fixed top-16 right-3 z-20 min-w-[168px] motion-safe:animate-slide-up"
@@ -160,7 +161,7 @@ export function P1Guess() {
                         <div className="mt-1.5 flex items-center justify-between gap-2 font-mono text-xs text-muted">
                             <button
                                 type="button"
-                                aria-label="上一筆送出"
+                                aria-label={t("p1.hist.prev")}
                                 disabled={shownIdx <= 0}
                                 onClick={() =>
                                     setHistView(Math.max(0, shownIdx - 1))
@@ -173,13 +174,13 @@ export function P1Guess() {
                                 {shownIdx + 1} / {hist.length}
                                 {shownIdx < hist.length - 1 && (
                                     <span className="ml-1 text-[10px] tracking-wide uppercase">
-                                        過去
+                                        {t("p1.hist.past")}
                                     </span>
                                 )}
                             </span>
                             <button
                                 type="button"
-                                aria-label="下一筆送出"
+                                aria-label={t("p1.hist.next")}
                                 disabled={shownIdx >= hist.length - 1}
                                 onClick={() =>
                                     setHistView(
@@ -223,13 +224,12 @@ export function P1Guess() {
                     })}
                 </div>
                 <div className="flex items-center justify-between gap-3 text-xs text-muted">
-                    <span>
-                        已標記 <strong className="text-fg">{done}</strong> / {n}
-                    </span>
+                    <span>{t("p1.progress.marked", { done, n })}</span>
                     {store.keyHints && (
                         <span className="flex items-center gap-1 font-mono text-[11px] text-muted">
-                            <Kbd>A</Kbd> 夜貓 · <Kbd>B</Kbd> 早起 · <Kbd>←</Kbd>
-                            <Kbd>→</Kbd> 移動
+                            <Kbd>A</Kbd> {t("p1.kbd.owl")} · <Kbd>B</Kbd>{" "}
+                            {t("p1.kbd.early")} · <Kbd>←</Kbd>
+                            <Kbd>→</Kbd> {t("p1.kbd.move")}
                         </span>
                     )}
                 </div>
@@ -310,7 +310,7 @@ export function P1Guess() {
                             );
                         })}
                         <MicroLabel className="mt-2 mb-4 block normal-case">
-                            ▏ 全班中位數 · 長條 = 這位同學在範圍中的位置
+                            {t("p1.legend")}
                         </MicroLabel>
 
                         <div className="grid grid-cols-2 gap-2.5">
@@ -324,7 +324,9 @@ export function P1Guess() {
                                 }`}
                             >
                                 <span className="h-2.5 w-2.5 rounded-full bg-accent3" />
-                                <span className="flex-1 text-left">夜貓子</span>
+                                <span className="flex-1 text-left">
+                                    {t("p1.label.owl")}
+                                </span>
                                 {store.keyHints && <Kbd>A</Kbd>}
                             </button>
                             <button
@@ -337,17 +339,19 @@ export function P1Guess() {
                                 }`}
                             >
                                 <span className="h-2.5 w-2.5 rounded-full bg-accent2" />
-                                <span className="flex-1 text-left">早起鳥</span>
+                                <span className="flex-1 text-left">
+                                    {t("p1.label.early")}
+                                </span>
                                 {store.keyHints && <Kbd>B</Kbd>}
                             </button>
                         </div>
 
                         <div className="mt-3 flex justify-between">
                             <GhostButton onClick={() => moveCard(-1)}>
-                                ← 上一張
+                                {t("p1.deck.prev")}
                             </GhostButton>
                             <GhostButton onClick={() => moveCard(1)}>
-                                跳過 →
+                                {t("p1.deck.skip")}
                             </GhostButton>
                         </div>
                     </Island>
@@ -358,7 +362,9 @@ export function P1Guess() {
                             onClick={() => patch("p1", { mode: "review" })}
                             className="rounded-md px-3.5 py-2 text-sm font-semibold text-accent transition-all hover:brightness-110"
                         >
-                            {full ? "檢查並送出 →" : "檢查全部 →"}
+                            {full
+                                ? t("p1.review.enterSubmit")
+                                : t("p1.review.enter")}
                         </button>
                     </div>
                 </>
@@ -366,13 +372,13 @@ export function P1Guess() {
                 <Island className="px-6 py-5 motion-safe:animate-pop-in">
                     <div className="mb-3.5 flex items-center justify-between">
                         <span className="font-display text-sm font-bold text-fg">
-                            檢查你的 {n} 個判斷
+                            {t("p1.review.title", { n })}
                         </span>
                         <GhostButton
                             className="text-xs font-semibold"
                             onClick={() => patch("p1", { mode: "deck" })}
                         >
-                            ← 回到卡片
+                            {t("p1.review.back")}
                         </GhostButton>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
@@ -400,11 +406,13 @@ export function P1Guess() {
                     </div>
                     <div className="mt-4 flex items-center gap-3 border-t border-border/40 pt-4">
                         <span className="font-mono text-xs text-muted">
-                            已標記 {done} / {n}
+                            {t("p1.progress.marked", { done, n })}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 font-mono text-xs font-semibold tracking-wide text-accent uppercase">
-                            第 {String(s.attempt).padStart(2, "0")} /{" "}
-                            {String(cap).padStart(2, "0")} 次
+                            {t("p1.review.attempt", {
+                                attempt: String(s.attempt).padStart(2, "0"),
+                                cap: String(cap).padStart(2, "0"),
+                            })}
                         </span>
                         <div className="flex-1" />
                         <PrimaryButton
@@ -413,12 +421,12 @@ export function P1Guess() {
                             className="py-3"
                         >
                             {submitting
-                                ? "送出中…"
+                                ? t("p1.submit.submitting")
                                 : left <= 0
-                                  ? "沒有剩餘機會"
+                                  ? t("p1.submit.noAttempts")
                                   : full
-                                    ? "送出猜測"
-                                    : `請先標完 ${n} 張`}
+                                    ? t("p1.submit.go")
+                                    : t("p1.submit.labelFirst", { n })}
                         </PrimaryButton>
                     </div>
                 </Island>

@@ -6,21 +6,10 @@
 import { useEffect } from "react";
 
 import { GhostButton, Island, MicroLabel } from "#/components/workshop/ui";
+import { useI18n } from "#/lib/i18n/context";
+import type { MessageKey } from "#/lib/i18n/messages";
 import { COLS, DND_LABELS, FEATURES } from "#/lib/workshop/features";
 import type { FeatureKey } from "#/lib/workshop/types";
-
-/** one-line meaning per codename (the survey question behind each column). */
-const MEANING: Record<FeatureKey, string> = {
-    SCREEN_AVG: "Average daily phone/screen time.",
-    CAFFEINE: "Caffeinated drinks in a week.",
-    LATE7: "Nights per week going to bed late.",
-    SNACK_DAYS: "Days per week with a late-night snack.",
-    LATE_SHOWER: "Days per week showering late at night.",
-    EARLY_WAKE: "Days per week waking up early.",
-    GAME_HRS: "Hours per week gaming.",
-    DND_START: "When phone Do-Not-Disturb kicks in at night (banded).",
-    BREAKFAST: "Days per week eating breakfast.",
-};
 
 /** owl-direction weight from dataset-io's deriveOwl `dir` map: >0 pushes owl,
     <0 pushes early bird, 0.5 is a weak owl signal. */
@@ -37,18 +26,28 @@ const OWL_DIR: Record<FeatureKey, number> = {
 };
 
 function DirChip({ dir }: { dir: number }) {
+    const { t } = useI18n();
     if (dir < 0)
         return (
-            <span className="font-mono text-[11px] text-accent2">↓ early</span>
+            <span className="font-mono text-[11px] text-accent2">
+                {t("admin.help.dir.early")}
+            </span>
         );
     if (dir < 1)
         return (
-            <span className="font-mono text-[11px] text-muted">≈ weak owl</span>
+            <span className="font-mono text-[11px] text-muted">
+                {t("admin.help.dir.weak")}
+            </span>
         );
-    return <span className="font-mono text-[11px] text-accent3">↑ owl</span>;
+    return (
+        <span className="font-mono text-[11px] text-accent3">
+            {t("admin.help.dir.owl")}
+        </span>
+    );
 }
 
 export function ImportHelpModal({ onClose }: { onClose: () => void }) {
+    const { t } = useI18n();
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
@@ -61,7 +60,7 @@ export function ImportHelpModal({ onClose }: { onClose: () => void }) {
         <div
             role="dialog"
             aria-modal="true"
-            aria-label="Required CSV columns"
+            aria-label={t("admin.help.title")}
             onClick={onClose}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
         >
@@ -72,72 +71,73 @@ export function ImportHelpModal({ onClose }: { onClose: () => void }) {
                 >
                     <div className="flex items-start justify-between border-b border-border px-5 py-4">
                         <div>
-                            <MicroLabel accent>CSV contract</MicroLabel>
+                            <MicroLabel accent>
+                                {t("admin.help.eyebrow")}
+                            </MicroLabel>
                             <h3 className="mt-1 font-display text-lg font-semibold text-fg">
-                                Required columns
+                                {t("admin.help.title")}
                             </h3>
                         </div>
                         <GhostButton
                             bordered
                             onClick={onClose}
-                            aria-label="Close"
+                            aria-label={t("common.close")}
                         >
-                            Close ✕
+                            {t("common.close")} ✕
                         </GhostButton>
                     </div>
 
                     <div className="min-h-0 flex-1 space-y-5 overflow-auto px-5 py-4">
                         <p className="text-sm leading-relaxed text-muted">
-                            Export the survey Sheet to CSV. Each question&apos;s
-                            header must{" "}
+                            {t("admin.help.body.before")}
                             <span className="text-fg">
-                                contain its codename
-                            </span>{" "}
-                            (case-insensitive — a header like{" "}
+                                {t("admin.help.body.contain")}
+                            </span>
+                            {t("admin.help.body.caseInsensitive")}
                             <span className="font-mono text-fg">
-                                螢幕使用 SCREEN_AVG(分/日)
-                            </span>{" "}
-                            maps to{" "}
+                                {t("admin.help.body.exampleHeader")}
+                            </span>
+                            {t("admin.help.body.mapsTo")}
                             <span className="font-mono text-fg">
                                 SCREEN_AVG
                             </span>
-                            ). All nine feature columns{" "}
-                            <span className="text-fg">and</span> your chosen
-                            label column are required; two headers matching one
-                            codename is rejected.
+                            {t("admin.help.body.after")}
+                            <span className="text-fg">
+                                {t("admin.help.body.and")}
+                            </span>
+                            {t("admin.help.body.labelCol")}
                         </p>
 
                         <p className="rounded-md border border-border bg-panel/40 px-3 py-2.5 text-[12px] leading-relaxed text-muted">
                             <span className="text-accent">
-                                Raw Google-Form export?
+                                {t("admin.help.raw.lead")}
                             </span>{" "}
-                            Paste it as-is — when no codenames are found,
-                            columns are mapped{" "}
-                            <span className="text-fg">by question order</span>{" "}
-                            instead (Timestamp, then these 9 features, then the
-                            average-bedtime question). The class label is
-                            derived from that bedtime column via a median split;
-                            any columns after it are ignored. No renaming or
-                            manual label column needed.
+                            {t("admin.help.raw.body.before")}
+                            <span className="text-fg">
+                                {t("admin.help.raw.body.byOrder")}
+                            </span>
+                            {t("admin.help.raw.body.after")}
                         </p>
 
                         <div>
-                            <MicroLabel>9 feature columns</MicroLabel>
+                            <MicroLabel>
+                                {t("admin.help.featureColumns")}
+                            </MicroLabel>
                             <div className="mt-2 overflow-hidden rounded-md border border-border">
                                 <table className="w-full text-left text-sm">
                                     <thead className="bg-panel/60 font-mono text-[11px] text-muted uppercase">
                                         <tr>
                                             <th className="px-3 py-2 font-medium">
-                                                Codename
+                                                {t("admin.help.table.codename")}
                                             </th>
                                             <th className="px-3 py-2 font-medium">
-                                                Meaning
+                                                {t("admin.help.table.meaning")}
                                             </th>
                                             <th className="px-3 py-2 font-medium">
-                                                Range
+                                                {t("admin.help.table.range")}
                                             </th>
                                             <th className="px-3 py-2 font-medium">
-                                                Owl?
+                                                {t("admin.help.table.owl")}
                                             </th>
                                         </tr>
                                     </thead>
@@ -162,7 +162,9 @@ export function ImportHelpModal({ onClose }: { onClose: () => void }) {
                                                         <span className="text-muted">
                                                             {m.name} —{" "}
                                                         </span>
-                                                        {MEANING[k]}
+                                                        {t(
+                                                            `admin.meaning.${k}` as MessageKey
+                                                        )}
                                                     </td>
                                                     <td className="px-3 py-2 font-mono text-[11px] text-muted">
                                                         {range}
@@ -181,23 +183,22 @@ export function ImportHelpModal({ onClose }: { onClose: () => void }) {
                         </div>
 
                         <div>
-                            <MicroLabel>Label column (required)</MicroLabel>
+                            <MicroLabel>
+                                {t("admin.help.label.title")}
+                            </MicroLabel>
                             <div className="mt-2 space-y-2 text-sm text-muted">
                                 <p>
                                     <span className="font-mono text-accent">
                                         LABEL_OWL
-                                    </span>{" "}
-                                    — class label,{" "}
-                                    <span className="font-mono text-fg">0</span>{" "}
-                                    = early bird,{" "}
-                                    <span className="font-mono text-fg">1</span>{" "}
-                                    = night owl.
+                                    </span>
+                                    {t("admin.help.label.body.before")}
+                                    <span className="font-mono text-fg">0</span>
+                                    {t("admin.help.label.body.early")}
+                                    <span className="font-mono text-fg">1</span>
+                                    {t("admin.help.label.body.owl")}
                                 </p>
                                 <p className="text-[12px] text-muted/80">
-                                    The label must be present as a 0/1 column —
-                                    the importer will not guess it for you. (A
-                                    raw Google-Form export instead derives it
-                                    from the average-bedtime column.)
+                                    {t("admin.help.label.note")}
                                 </p>
                             </div>
                         </div>

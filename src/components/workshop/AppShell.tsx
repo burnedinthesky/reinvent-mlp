@@ -1,4 +1,5 @@
 import { Header } from "./Header";
+import { useI18n } from "#/lib/i18n/context";
 import { P1Guess } from "./phases/P1Guess";
 import { P2Circles } from "./phases/P2Circles";
 import { P3Line } from "./phases/P3Line";
@@ -10,12 +11,13 @@ import { useWorkshop } from "#/state/workshop-context";
 /** The operator's blank/focus stage — a deliberately empty screen so every phone
     goes quiet and eyes come up to the front. */
 function FocusScreen() {
+    const { t } = useI18n();
     return (
         <div className="flex h-full items-center justify-center">
             <div className="flex flex-col items-center gap-3 text-muted">
                 <span className="h-2.5 w-2.5 rounded-full bg-current opacity-50 motion-safe:animate-pulse" />
                 <span className="font-mono text-[11px] tracking-[.2em] uppercase">
-                    請看前方
+                    {t("appshell.focus")}
                 </span>
             </div>
         </div>

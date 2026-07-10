@@ -4,7 +4,9 @@
 
 import { useEffect, useState } from "react";
 
+import { LanguageSwitcher } from "#/components/LanguageSwitcher";
 import { MicroLabel } from "#/components/workshop/ui";
+import { useI18n } from "#/lib/i18n/context";
 import { REVEAL_META } from "#/lib/workshop/admin-service";
 import type { DatasetInfo } from "#/lib/workshop/admin-service";
 import type { ServerState } from "#/lib/workshop/types";
@@ -31,6 +33,7 @@ export function StatusStrip({
     state: ServerState | null;
     dataset: DatasetInfo | null;
 }) {
+    const { t } = useI18n();
     const secs = useCountdown(state?.deadline ?? null);
 
     return (
@@ -40,21 +43,21 @@ export function StatusStrip({
                     M
                 </div>
                 <MicroLabel accent className="tracking-[.14em]">
-                    Admin
+                    {t("admin.status.brand")}
                 </MicroLabel>
             </div>
 
             <div className="h-5 w-px bg-border" />
 
             <div className="flex items-center gap-1.5">
-                <MicroLabel>Phase</MicroLabel>
+                <MicroLabel>{t("admin.status.phase")}</MicroLabel>
                 <span className="rounded-full bg-accent px-2.5 py-0.5 font-mono text-[11px] font-semibold text-accent-fg">
                     {state?.phase ?? "—"}
                 </span>
             </div>
 
             <div className="flex items-center gap-1.5">
-                <MicroLabel>Timer</MicroLabel>
+                <MicroLabel>{t("admin.status.timer")}</MicroLabel>
                 <span
                     className={`font-mono text-sm font-semibold ${
                         secs !== null && secs <= 60 ? "text-warning" : "text-fg"
@@ -72,7 +75,7 @@ export function StatusStrip({
                     return (
                         <span
                             key={r.key}
-                            title={r.caption}
+                            title={t(`reveals.${r.key}.caption`)}
                             className={`rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-wide uppercase ${
                                 on
                                     ? "border-accent/50 bg-accent/10 text-accent"
@@ -88,11 +91,11 @@ export function StatusStrip({
             <div className="flex-1" />
 
             <div className="flex items-center gap-2">
-                <MicroLabel>Dataset</MicroLabel>
+                <MicroLabel>{t("admin.status.dataset")}</MicroLabel>
                 {dataset ? (
                     <div className="flex items-center gap-2">
                         <span className="rounded-full border border-positive/50 bg-positive/10 px-2 py-0.5 font-mono text-[10px] tracking-wide text-positive uppercase">
-                            live
+                            {t("admin.status.live")}
                         </span>
                         <span className="font-mono text-[11px] text-muted">
                             <span className="text-fg">{dataset.name}</span>
@@ -109,10 +112,13 @@ export function StatusStrip({
                     </div>
                 ) : (
                     <span className="font-mono text-[11px] text-muted/60">
-                        none
+                        {t("admin.status.none")}
                     </span>
                 )}
             </div>
+
+            <div className="h-5 w-px bg-border" />
+            <LanguageSwitcher />
         </header>
     );
 }

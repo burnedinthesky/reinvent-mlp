@@ -14,6 +14,7 @@ import {
     Select,
     StatCard,
 } from "#/components/workshop/ui";
+import { useI18n } from "#/lib/i18n/context";
 import { PHASES, TEAM_LABELS } from "#/lib/workshop/constants";
 import type {
     AdminService,
@@ -29,6 +30,7 @@ type SortKey = "score" | "group" | "name";
 type SortDir = "asc" | "desc";
 
 export function ScoresSection({ service }: { service: AdminService }) {
+    const { t } = useI18n();
     const [phase, setPhase] = useState<Phase | null>(null);
     const [data, setData] = useState<PhaseScores | null>(null);
     const [loading, setLoading] = useState(false);
@@ -152,25 +154,22 @@ export function ScoresSection({ service }: { service: AdminService }) {
     return (
         <div className="space-y-5">
             <div>
-                <MicroLabel accent>Scores</MicroLabel>
+                <MicroLabel accent>{t("admin.scores.eyebrow")}</MicroLabel>
                 <h2 className="mt-1 font-display text-xl font-semibold text-fg">
-                    Per-student scores
+                    {t("admin.scores.title")}
                 </h2>
                 <p className="text-sm text-muted">
-                    Every squad member's best attempt for a phase — sort by
-                    score or group, filter by squad, and spot who hasn't
-                    submitted. Grant a student extra attempts to re-open their
-                    submit button for the selected phase.
+                    {t("admin.scores.body")}
                 </p>
             </div>
 
             <div className="flex flex-wrap items-end gap-3">
                 <label className="flex flex-col gap-1">
-                    <MicroLabel>Phase</MicroLabel>
+                    <MicroLabel>{t("admin.scores.phase")}</MicroLabel>
                     <Select
                         value={phase ?? ""}
                         onChange={(e) => setPhase(e.target.value as Phase)}
-                        aria-label="Phase"
+                        aria-label={t("admin.scores.phase")}
                     >
                         {SCORE_PHASES.map((p) => (
                             <option key={p} value={p}>
@@ -180,7 +179,7 @@ export function ScoresSection({ service }: { service: AdminService }) {
                     </Select>
                 </label>
                 <label className="flex flex-col gap-1">
-                    <MicroLabel>Group</MicroLabel>
+                    <MicroLabel>{t("admin.scores.group")}</MicroLabel>
                     <Select
                         value={groupFilter}
                         onChange={(e) =>
@@ -190,9 +189,9 @@ export function ScoresSection({ service }: { service: AdminService }) {
                                     : Number(e.target.value)
                             )
                         }
-                        aria-label="Group filter"
+                        aria-label={t("admin.scores.groupFilter")}
                     >
-                        <option value="all">All squads</option>
+                        <option value="all">{t("admin.scores.allSquads")}</option>
                         {TEAM_LABELS.map((label, i) => (
                             <option key={i} value={i + 1}>
                                 {label}
@@ -201,7 +200,7 @@ export function ScoresSection({ service }: { service: AdminService }) {
                     </Select>
                 </label>
                 <label className="flex flex-col gap-1">
-                    <MicroLabel>Grant</MicroLabel>
+                    <MicroLabel>{t("admin.scores.grant")}</MicroLabel>
                     <input
                         type="number"
                         min={1}
@@ -211,31 +210,43 @@ export function ScoresSection({ service }: { service: AdminService }) {
                                 Math.max(0, Math.floor(Number(e.target.value)))
                             )
                         }
-                        aria-label="Attempts to grant per row"
+                        aria-label={t("admin.scores.grantAria")}
                         className="w-20 rounded-md border border-border bg-bg px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent"
                     />
                 </label>
                 {data && (
                     <span className="ml-auto font-mono text-[11px] text-muted">
                         {data.metric === "acc"
-                            ? "accuracy · higher better"
-                            : "loss · lower better"}
+                            ? t("admin.scores.metric.acc")
+                            : t("admin.scores.metric.loss")}
                     </span>
                 )}
             </div>
 
             <div className="grid grid-cols-3 gap-3 max-lg:grid-cols-1">
-                <StatCard label="Shown" value={rows.length} accent />
-                <StatCard label="Submitted" value={scored.length} />
-                <StatCard label="Best" value={best == null ? "—" : fmt(best)} />
+                <StatCard
+                    label={t("admin.scores.kpi.shown")}
+                    value={rows.length}
+                    accent
+                />
+                <StatCard
+                    label={t("admin.scores.kpi.submitted")}
+                    value={scored.length}
+                />
+                <StatCard
+                    label={t("admin.scores.kpi.best")}
+                    value={best == null ? "—" : fmt(best)}
+                />
             </div>
 
             <Island className="p-0">
                 {loading && !data ? (
-                    <div className="p-5 text-sm text-muted">Loading…</div>
+                    <div className="p-5 text-sm text-muted">
+                        {t("admin.scores.loading")}
+                    </div>
                 ) : rows.length === 0 ? (
                     <div className="p-5 text-sm text-muted">
-                        No students for this view.
+                        {t("admin.scores.noStudents")}
                     </div>
                 ) : (
                     <div className="max-h-[480px] overflow-auto rounded-md">
@@ -246,13 +257,15 @@ export function ScoresSection({ service }: { service: AdminService }) {
                                         onClick={() => toggleSort("name")}
                                         className="pl-4"
                                     >
-                                        Student{arrow("name")}
+                                        {t("admin.scores.col.student")}
+                                        {arrow("name")}
                                     </Th>
                                     <Th onClick={() => toggleSort("group")}>
-                                        Group{arrow("group")}
+                                        {t("admin.scores.col.group")}
+                                        {arrow("group")}
                                     </Th>
                                     <th className="px-3 py-2.5 text-right font-medium">
-                                        Attempts
+                                        {t("admin.scores.col.attempts")}
                                     </th>
                                     <Th
                                         onClick={() => toggleSort("score")}
@@ -262,16 +275,18 @@ export function ScoresSection({ service }: { service: AdminService }) {
                                                 : "pr-4 text-right"
                                         }
                                     >
-                                        {isP4 ? "Foothill" : "Score"}
+                                        {isP4
+                                            ? t("admin.scores.col.foothill")
+                                            : t("admin.scores.col.score")}
                                         {arrow("score")}
                                     </Th>
                                     {isP4 && (
                                         <th className="px-3 py-2.5 text-right font-medium">
-                                            Range
+                                            {t("admin.scores.col.range")}
                                         </th>
                                     )}
                                     <th className="px-3 py-2.5 pr-4 text-right font-medium">
-                                        Grant
+                                        {t("admin.scores.col.grant")}
                                     </th>
                                 </tr>
                             </thead>
@@ -292,7 +307,10 @@ export function ScoresSection({ service }: { service: AdminService }) {
                                             {r.bonus > 0 && (
                                                 <span
                                                     className="ml-1 text-accent"
-                                                    title={`+${r.bonus} granted`}
+                                                    title={t(
+                                                        "admin.scores.grantedTitle",
+                                                        { bonus: r.bonus }
+                                                    )}
                                                 >
                                                     +{r.bonus}
                                                 </span>
@@ -346,14 +364,16 @@ export function ScoresSection({ service }: { service: AdminService }) {
             <Island className="flex items-center justify-between p-5">
                 <div>
                     <div className="font-display text-base font-semibold text-fg">
-                        Full dump
+                        {t("admin.scores.dump.title")}
                     </div>
                     <p className="text-xs text-muted">
-                        Server state + active dataset + stats, as JSON.
+                        {t("admin.scores.dump.body")}
                     </p>
                 </div>
                 <PrimaryButton onClick={download} disabled={dumping}>
-                    {dumping ? "Preparing…" : "Download JSON"}
+                    {dumping
+                        ? t("admin.scores.dump.preparing")
+                        : t("admin.scores.dump.download")}
                 </PrimaryButton>
             </Island>
         </div>

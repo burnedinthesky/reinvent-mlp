@@ -19,6 +19,7 @@ import { drawMlpNet } from "#/lib/workshop/draw/network";
 import type { NetNode } from "#/lib/workshop/draw/network";
 import { drawSpark } from "#/lib/workshop/draw/spark";
 import type { Activation } from "#/lib/workshop/mlp";
+import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 
 const LRS = ["0.003", "0.01", "0.03", "0.1", "0.3", "1", "3"];
@@ -26,6 +27,7 @@ const LRS = ["0.003", "0.01", "0.03", "0.1", "0.3", "1", "3"];
 export function MlpPlayground() {
     const { config, points, service, store, patch, netEngineRef } =
         useWorkshop();
+    const { t } = useI18n();
     const s = store.mlp;
 
     // lazily create + keep the net engine in sync (persists across remounts).
@@ -151,12 +153,13 @@ export function MlpPlayground() {
     if (!config) return null;
     const vm = /^h(\d+)-(\d+)$/.exec(s.view);
     const viewLabel = vm
-        ? "隱藏層 " +
-          (+vm[1] + 1) +
-          " · 神經元 " +
-          (+vm[2] + 1) +
-          (vm[1] === "0" ? " — 已在資料上畫出它的線" : "")
-        : "輸出 · P(夜貓)";
+        ? t(
+              vm[1] === "0"
+                  ? "playground.view.hiddenLine"
+                  : "playground.view.hidden",
+              { layer: +vm[1] + 1, n: +vm[2] + 1 }
+          )
+        : t("playground.view.output");
 
     const steppers: {
         label: string;
@@ -167,7 +170,7 @@ export function MlpPlayground() {
         canInc: boolean;
     }[] = [
         {
-            label: "隱藏層數",
+            label: t("playground.arch.layers"),
             val: s.layers,
             dec: () => s.layers > 0 && setArch({ layers: s.layers - 1 }),
             inc: () => s.layers < 2 && setArch({ layers: s.layers + 1 }),
@@ -177,7 +180,7 @@ export function MlpPlayground() {
     ];
     if (s.layers >= 1)
         steppers.push({
-            label: "神經元 · 第 1 層",
+            label: t("playground.arch.neuronsL1"),
             val: s.n1,
             dec: () => s.n1 > 1 && setArch({ n1: s.n1 - 1 }),
             inc: () => s.n1 < 6 && setArch({ n1: s.n1 + 1 }),
@@ -186,7 +189,7 @@ export function MlpPlayground() {
         });
     if (s.layers >= 2)
         steppers.push({
-            label: "神經元 · 第 2 層",
+            label: t("playground.arch.neuronsL2"),
             val: s.n2,
             dec: () => s.n2 > 1 && setArch({ n2: s.n2 - 1 }),
             inc: () => s.n2 < 6 && setArch({ n2: s.n2 + 1 }),
@@ -204,14 +207,16 @@ export function MlpPlayground() {
                 <div>
                     <div className="flex items-baseline justify-between">
                         <MicroLabel accent className="text-[11px]">
-                            遊樂場
+                            {t("playground.title")}
                         </MicroLabel>
                         <span className="font-mono text-xs tracking-wide text-muted uppercase">
-                            {points.filter((p) => !p.hidden).length} 個訓練點
+                            {t("playground.trainPoints", {
+                                count: points.filter((p) => !p.hidden).length,
+                            })}
                         </span>
                     </div>
                     <h2 className="mt-1 font-display text-lg font-bold tracking-tight text-fg">
-                        訓練真正的神經網路
+                        {t("playground.heading")}
                     </h2>
                 </div>
 
@@ -223,14 +228,14 @@ export function MlpPlayground() {
                             onClick={() => patch("mlp", { running: false })}
                             className="flex-1 rounded-md border border-border bg-panel px-3.5 py-2.5 font-display text-sm font-bold text-muted transition-colors hover:text-fg"
                         >
-                            ⏸ 暫停
+                            {t("playground.transport.pause")}
                         </button>
                     ) : (
                         <PrimaryButton
                             onClick={() => patch("mlp", { running: true })}
                             className="flex-1 py-2.5 font-display font-bold"
                         >
-                            ▶ 訓練
+                            {t("playground.transport.train")}
                         </PrimaryButton>
                     )}
                     <GhostButton
@@ -238,15 +243,15 @@ export function MlpPlayground() {
                         className="px-3 py-2.5"
                         onClick={stepOnce}
                     >
-                        單步 ×10
+                        {t("playground.transport.step")}
                     </GhostButton>
                     <GhostButton
                         bordered
                         className="px-3 py-2.5"
                         onClick={reset}
-                        title="重新抽取隨機權重"
+                        title={t("playground.transport.resetTitle")}
                     >
-                        ↺ 重設
+                        {t("playground.transport.reset")}
                     </GhostButton>
                     {store.keyHints && <Kbd>SPACE</Kbd>}
                 </div>
@@ -284,7 +289,7 @@ export function MlpPlayground() {
                     ))}
                     <div className="flex items-center gap-2.5">
                         <span className="flex-1 text-xs font-semibold text-muted">
-                            活化函數
+                            {t("playground.arch.activation")}
                         </span>
                         <Select
                             value={s.act}
@@ -299,7 +304,7 @@ export function MlpPlayground() {
                     </div>
                     <div className="flex items-center gap-2.5">
                         <span className="flex-1 text-xs font-semibold text-muted">
-                            學習率
+                            {t("playground.lr")}
                         </span>
                         <Select
                             value={s.lr}
@@ -319,13 +324,15 @@ export function MlpPlayground() {
                 {/* stats */}
                 <div className="flex items-center gap-4">
                     <div>
-                        <MicroLabel>步數</MicroLabel>
+                        <MicroLabel>{t("playground.stats.steps")}</MicroLabel>
                         <div className="font-mono text-xl font-semibold text-fg">
                             {s.step}
                         </div>
                     </div>
                     <div>
-                        <MicroLabel>訓練 loss</MicroLabel>
+                        <MicroLabel>
+                            {t("playground.stats.trainLoss")}
+                        </MicroLabel>
                         <div className="font-mono text-xl font-semibold text-fg">
                             {s.loss != null ? s.loss.toFixed(3) : "—"}
                         </div>
@@ -342,7 +349,7 @@ export function MlpPlayground() {
                 {/* network diagram */}
                 <div>
                     <MicroLabel className="mb-1.5 block">
-                        網路 — 點擊神經元查看它畫出的內容
+                        {t("playground.net.title")}
                     </MicroLabel>
                     <div className="h-[210px] overflow-hidden rounded-md border border-border/40 bg-bg">
                         <canvas
@@ -369,7 +376,7 @@ export function MlpPlayground() {
                             onClick={() => patch("mlp", { view: "out" })}
                             className="rounded-full border border-border bg-panel px-3 py-1.5 text-[11px] font-semibold text-accent transition-colors hover:border-accent"
                         >
-                            ← 回到輸出
+                            {t("playground.backToOutput")}
                         </button>
                     )}
                 </div>

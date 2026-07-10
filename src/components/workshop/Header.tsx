@@ -2,29 +2,44 @@ import { useEffect, useRef, useState } from "react";
 
 import { PhaseHelpModal } from "#/components/workshop/PhaseHelpModal";
 import { GhostButton, Island } from "#/components/workshop/ui";
+import { LanguageSwitcher } from "#/components/LanguageSwitcher";
 import { Toggle } from "#/components/admin/ui";
 import { useWorkshop } from "#/state/workshop-context";
+import { useI18n } from "#/lib/i18n/context";
+import type { MessageKey } from "#/lib/i18n/messages";
 import { REVEAL_META } from "#/lib/workshop/constants";
 import type { Phase } from "#/lib/workshop/types";
 
-const PHASE_DEFS: [string, Phase, string][] = [
-    ["01", "P1", "猜猜類別"],
-    ["02", "P2", "圈選規則"],
-    ["03", "P3", "霧中直線"],
-    ["04", "P4", "訓練機器人"],
-    ["05", "P5", "神經元"],
-    ["06", "P6", "遊樂場"],
-    ["∅", "NONE", "空白"],
+/** Phase → operator code. Display names are resolved through t() (phases.*.name)
+    so the nav labels track the active locale. */
+const PHASE_DEFS: [string, Phase][] = [
+    ["01", "P1"],
+    ["02", "P2"],
+    ["03", "P3"],
+    ["04", "P4"],
+    ["05", "P5"],
+    ["06", "P6"],
+    ["∅", "NONE"],
 ];
 
-const PHASE_META: Record<Phase, { code: string; name: string }> =
-    PHASE_DEFS.reduce(
-        (acc, [code, key, name]) => {
-            acc[key] = { code, name };
-            return acc;
-        },
-        {} as Record<Phase, { code: string; name: string }>
-    );
+const PHASE_CODE: Record<Phase, string> = PHASE_DEFS.reduce(
+    (acc, [code, key]) => {
+        acc[key] = code;
+        return acc;
+    },
+    {} as Record<Phase, string>
+);
+
+/** Typed lookup from a phase to its display-name message key. */
+const PHASE_NAME_KEY: Record<Phase, MessageKey> = {
+    P1: "phases.P1.name",
+    P2: "phases.P2.name",
+    P3: "phases.P3.name",
+    P4: "phases.P4.name",
+    P5: "phases.P5.name",
+    P6: "phases.P6.name",
+    NONE: "phases.NONE.name",
+};
 
 /** Server-armed countdown — counts down to the operator's deadline, or shows
     --:-- when no countdown is live. Ticks locally every second so the always-on
@@ -80,11 +95,13 @@ function PhaseChips({
     includeNone?: boolean;
 }) {
     const { store, setPhase } = useWorkshop();
+    const { t } = useI18n();
     return (
         <div className="flex flex-wrap gap-1.5">
             {PHASE_DEFS.filter(([, key]) => includeNone || key !== "NONE").map(
-                ([code, key, name]) => {
+                ([code, key]) => {
                     const on = store.phase === key;
+                    const name = t(PHASE_NAME_KEY[key]);
                     return (
                         <button
                             key={key}
@@ -118,12 +135,13 @@ function PhaseChips({
     flips the client-side reveal that the phase renders against. */
 function RevealToggles() {
     const { store, reveals, setClientReveal } = useWorkshop();
+    const { t } = useI18n();
     const flags = REVEAL_META.filter((r) => r.phase === store.phase);
     if (flags.length === 0) return null;
     return (
         <div className="mt-3 border-t border-border/60 pt-3">
             <div className="mb-2 font-mono text-[10px] tracking-[.14em] text-muted uppercase">
-                顯示開關
+                {t("header.revealToggles")}
             </div>
             <div className="flex flex-col gap-2.5">
                 {flags.map((r) => (
@@ -136,7 +154,7 @@ function RevealToggles() {
                                 {r.name}
                             </div>
                             <div className="mt-0.5 text-[11px] leading-snug text-muted">
-                                {r.caption}
+                                {t(`reveals.${r.key}.caption` as MessageKey)}
                             </div>
                         </div>
                         <Toggle
@@ -156,6 +174,7 @@ function RevealToggles() {
     is enabled — phase-navigation chips + per-phase reveal toggles. */
 export function Header() {
     const { store, selfSelect, reveals, logout, preview } = useWorkshop();
+    const { t } = useI18n();
     const [open, setOpen] = useState(false);
     const [helpOpen, setHelpOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement>(null);
@@ -180,7 +199,8 @@ export function Header() {
     const initial = (store.name || store.nickname || "?")
         .slice(0, 1)
         .toUpperCase();
-    const meta = PHASE_META[store.phase];
+    const phaseCode = PHASE_CODE[store.phase];
+    const phaseName = t(PHASE_NAME_KEY[store.phase]);
 
     return (
         <div ref={rootRef} className="fixed top-3 right-3 z-30">
@@ -188,7 +208,7 @@ export function Header() {
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
-                aria-label="個人與階段選單"
+                aria-label={t("header.aria.menu")}
                 className={`flex items-center gap-2 rounded-full border bg-panel/90 py-1 pr-1 pl-3 shadow-lg backdrop-blur transition-colors ${
                     preview
                         ? "border-accent"
@@ -197,7 +217,7 @@ export function Header() {
             >
                 {preview ? (
                     <span className="font-mono text-[10px] font-semibold tracking-[.18em] text-accent uppercase">
-                        預覽
+                        {t("header.preview")}
                     </span>
                 ) : (
                     <Timer />
@@ -215,10 +235,10 @@ export function Header() {
                         </div>
                         <div className="min-w-0">
                             <div className="truncate font-display text-sm font-semibold text-fg">
-                                {store.nickname || "訪客"}
+                                {store.nickname || t("header.guest")}
                             </div>
                             <div className="font-mono text-[11px] tracking-wide text-muted uppercase">
-                                {meta.code} · {meta.name}
+                                {phaseCode} · {phaseName}
                             </div>
                         </div>
                     </div>
@@ -227,7 +247,9 @@ export function Header() {
                         {selfSelect ? (
                             <>
                                 <div className="mb-2 font-mono text-[10px] tracking-[.14em] text-muted uppercase">
-                                    {preview ? "預覽階段" : "跳到階段"}
+                                    {preview
+                                        ? t("header.previewPhases")
+                                        : t("header.jumpPhase")}
                                 </div>
                                 <PhaseChips
                                     onPick={() => setOpen(false)}
@@ -237,12 +259,19 @@ export function Header() {
                         ) : (
                             <div className="flex items-center gap-2 text-xs text-muted">
                                 <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60" />
-                                跟隨房間進度，無法自行切換。
+                                {t("header.followRoom")}
                             </div>
                         )}
                     </div>
 
                     {selfSelect && <RevealToggles />}
+
+                    <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+                        <span className="font-mono text-[10px] tracking-[.14em] text-muted uppercase">
+                            {t("common.language")}
+                        </span>
+                        <LanguageSwitcher />
+                    </div>
 
                     <div className="mt-3 flex flex-col gap-2 border-t border-border/60 pt-3">
                         <GhostButton
@@ -253,14 +282,14 @@ export function Header() {
                             }}
                             className="flex w-full justify-center py-1.5 text-[12px] font-semibold"
                         >
-                            玩法說明
+                            {t("header.help")}
                         </GhostButton>
                         {preview ? (
                             <a
                                 href="/"
                                 className="flex w-full justify-center rounded-md border border-border py-1.5 text-center text-[12px] font-semibold text-warning transition-colors hover:text-warning"
                             >
-                                離開預覽
+                                {t("header.exitPreview")}
                             </a>
                         ) : (
                             <GhostButton
@@ -271,7 +300,7 @@ export function Header() {
                                 }}
                                 className="flex w-full justify-center py-1.5 text-[12px] font-semibold text-warning hover:text-warning"
                             >
-                                登出
+                                {t("header.logout")}
                             </GhostButton>
                         )}
                     </div>

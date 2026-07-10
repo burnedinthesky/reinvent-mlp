@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 
+import { useI18n } from "#/lib/i18n/context";
 import { VAR_COLORS, VAR_SLOTS } from "#/lib/workshop/blocks";
 import type { VarSlot } from "#/lib/workshop/types";
 
@@ -20,6 +21,7 @@ export function VarLegend({
     names: Record<VarSlot, string>;
     onRename: (slot: VarSlot, name: string) => void;
 }) {
+    const { t } = useI18n();
     const [editing, setEditing] = useState<VarSlot | null>(null);
     return (
         <div className="grid grid-cols-4 gap-2">
@@ -51,7 +53,7 @@ export function VarLegend({
                         key={slot}
                         type="button"
                         onClick={() => setEditing(slot)}
-                        title="點擊重新命名"
+                        title={t("p4.vars.rename")}
                         className="inline-flex w-full items-center gap-1.5 rounded px-2.5 py-1.5 font-mono text-[13px] font-bold text-white"
                         style={{ background: VAR_COLORS[slot] }}
                     >

@@ -4,6 +4,7 @@ import { JoinScreen } from "#/components/workshop/JoinScreen";
 import { MlpPlayground } from "#/components/workshop/MlpPlayground";
 import { WorkshopProvider } from "#/state/WorkshopContext";
 import { useWorkshop } from "#/state/workshop-context";
+import { LocaleProvider } from "#/lib/i18n/route";
 
 export const Route = createFileRoute("/mlp-playground")({
     component: MlpPlaygroundRoute,
@@ -24,10 +25,12 @@ function Screen() {
 
 function MlpPlaygroundRoute() {
     return (
-        <WorkshopProvider>
-            <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
-                <Screen />
-            </div>
-        </WorkshopProvider>
+        <LocaleProvider>
+            <WorkshopProvider>
+                <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
+                    <Screen />
+                </div>
+            </WorkshopProvider>
+        </LocaleProvider>
     );
 }

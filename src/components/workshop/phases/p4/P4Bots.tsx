@@ -12,6 +12,8 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { useCanvas } from "#/components/workshop/canvas/useCanvas";
+import { useI18n } from "#/lib/i18n/context";
+import type { MessageKey } from "#/lib/i18n/messages";
 import {
     Island,
     MicroLabel,
@@ -49,14 +51,15 @@ import { inferSlotTypes, usedSlotsOf } from "./varinfer";
 const MAX_CARDS = 20;
 
 /** Sidebar surface options, most-approachable first. The two MLP stages appear
-    only once the operator reveals `p4_terrains`. */
-const SURFACES: { id: StageId; label: string }[] = [
-    { id: "bowl", label: "練習 · 碗形 · 簡單" },
-    { id: "mlp_a", label: "送出 · 丘陵 · 中等" },
-    { id: "mlp_b", label: "送出 · 山脈 · 困難" },
+    only once the operator reveals `p4_terrains`. Labels resolve through t() by id. */
+const SURFACES: { id: StageId; labelKey: MessageKey }[] = [
+    { id: "bowl", labelKey: "p4.surface.bowl" },
+    { id: "mlp_a", labelKey: "p4.surface.mlp_a" },
+    { id: "mlp_b", labelKey: "p4.surface.mlp_b" },
 ];
 
 export function P4Bots() {
+    const { t } = useI18n();
     const { service, store, patch, points, terrainStatus, reveals, caps } =
         useWorkshop();
     const s = store.p4;
@@ -262,14 +265,12 @@ export function P4Bots() {
             arr.splice(to > from ? to - 1 : to, 0, card);
             return arr;
         });
-    const appendCard = (t: CardType) => {
+    const appendCard = (type: CardType) => {
         if (loop.length >= MAX_CARDS) {
-            toast.error(
-                `迴圈已滿，最多 ${MAX_CARDS} 張卡。移除一張後才能新增。`
-            );
+            toast.error(t("p4.toast.loopFull", { max: MAX_CARDS }));
             return;
         }
-        setLoop((l) => [...l, makeCard(t)]);
+        setLoop((l) => [...l, makeCard(type)]);
     };
 
     /* ---- deploy ---- */
@@ -286,7 +287,9 @@ export function P4Bots() {
         try {
             res = await service.botSandbox(randomStart(prog));
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "執行被拒絕");
+            toast.error(
+                e instanceof Error ? e.message : t("p4.toast.runRejected")
+            );
             return;
         }
         patch("p4", (st) => ({
@@ -301,7 +304,9 @@ export function P4Bots() {
         try {
             res = await service.submitBot(randomStart(prog), target);
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "執行被拒絕");
+            toast.error(
+                e instanceof Error ? e.message : t("p4.toast.runRejected")
+            );
             return;
         }
         patch("p4", (st) => {
@@ -374,21 +379,25 @@ export function P4Bots() {
                 <div>
                     <div className="flex items-baseline justify-between">
                         <MicroLabel accent className="text-[11px]">
-                            Phase 04 · 遠征
+                            {t("p4.header.phase")}
                         </MicroLabel>
                         <span className="font-mono text-xs tracking-wide text-muted uppercase">
-                            執行 {String(s.runs.length).padStart(2, "0")}/
-                            {String(cap).padStart(2, "0")}
+                            {t("p4.header.runs", {
+                                done: String(s.runs.length).padStart(2, "0"),
+                                cap: String(cap).padStart(2, "0"),
+                            })}
                         </span>
                     </div>
                     <h2 className="mt-1 font-display text-lg font-bold tracking-tight text-fg">
-                        組出訓練迴圈
+                        {t("p4.header.title")}
                     </h2>
                 </div>
 
                 {/* surface selector — Practice Bowl vs the two scored submission surfaces */}
                 <div>
-                    <MicroLabel className="mb-1 block">地形</MicroLabel>
+                    <MicroLabel className="mb-1 block">
+                        {t("p4.surface.label")}
+                    </MicroLabel>
                     <Select
                         value={s.sel}
                         onChange={(e) => {
@@ -398,26 +407,29 @@ export function P4Bots() {
                                 view: { run: -1, stage: sel, step: 0 },
                             });
                         }}
-                        aria-label="P4 地形"
+                        aria-label={t("p4.surface.aria")}
                         className="w-full py-2 text-sm"
                     >
                         {surfaces.map((su) => (
                             <option key={su.id} value={su.id}>
-                                {su.label}
+                                {t(su.labelKey)}
                             </option>
                         ))}
                     </Select>
                     <p className="mt-1.5 text-sm leading-relaxed text-muted">
                         {s.sel === "bowl"
-                            ? "你可以在碗形練習場自由練習；執行不會計分，也不會送出。"
-                            : `送出後會評分${STAGE_META[s.sel].label}。丘陵和山脈共用 ${cap} 次機會。`}
+                            ? t("p4.surface.desc.bowl")
+                            : t("p4.surface.desc.submit", {
+                                  stage: t(`p4.stage.${s.sel}` as MessageKey),
+                                  cap,
+                              })}
                     </p>
                 </div>
 
                 {/* variable legend */}
                 <div>
                     <MicroLabel className="mb-1 block">
-                        變數 · 點擊可重新命名
+                        {t("p4.vars.legendLabel")}
                     </MicroLabel>
                     <VarLegend
                         slotTypes={slotTypes}
@@ -448,9 +460,7 @@ export function P4Bots() {
                 {/* crate — grouped by category, with the loop-budget meter */}
                 <div>
                     <div className="mb-1 flex items-baseline justify-between">
-                        <MicroLabel>
-                            卡片箱 · 點擊新增 · 滑過查看說明
-                        </MicroLabel>
+                        <MicroLabel>{t("p4.crate.label")}</MicroLabel>
                         <span
                             className={`font-mono text-[10px] tracking-wide ${
                                 loop.length >= MAX_CARDS
@@ -458,7 +468,10 @@ export function P4Bots() {
                                     : "text-muted"
                             }`}
                         >
-                            卡片 {loop.length}/{MAX_CARDS}
+                            {t("p4.crate.count", {
+                                count: loop.length,
+                                max: MAX_CARDS,
+                            })}
                         </span>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -497,7 +510,7 @@ export function P4Bots() {
                         onChange={(e) =>
                             patch("p4", { botName: e.target.value })
                         }
-                        placeholder="替機器人命名"
+                        placeholder={t("p4.deploy.namePlaceholder")}
                         maxLength={14}
                         className="w-[150px] rounded-md border border-border bg-bg px-3 py-2.5 font-mono text-xs text-fg outline-none placeholder:text-muted/60 focus:border-accent"
                     />
@@ -507,12 +520,12 @@ export function P4Bots() {
                         className="flex-1 font-display font-bold"
                     >
                         {loop.length === 0
-                            ? "先填入迴圈"
+                            ? t("p4.deploy.fillLoop")
                             : !isSubmission
-                              ? "執行模擬"
+                              ? t("p4.deploy.simulate")
                               : atCap
-                                ? `${cap} 次已用完`
-                                : "送出"}
+                                ? t("p4.deploy.capReached", { cap })
+                                : t("p4.deploy.submit")}
                     </PrimaryButton>
                 </div>
             </Island>
@@ -530,16 +543,16 @@ export function P4Bots() {
                 <div className="pointer-events-none absolute top-3.5 left-3.5 flex items-center gap-2 rounded-md border border-border bg-bg/80 px-3 py-1.5 backdrop-blur-sm">
                     <span className="font-mono text-[11px] tracking-wide text-muted uppercase">
                         {STAGE_META[s.view.stage].kind === "practice"
-                            ? "練習"
-                            : "送出"}
+                            ? t("p4.map.kind.practice")
+                            : t("p4.map.kind.submission")}
                     </span>
                     <span className="font-display text-sm font-semibold text-fg">
-                        {STAGE_META[s.view.stage].label}
+                        {t(`p4.stage.${s.view.stage}` as MessageKey)}
                     </span>
                     {isSubmission && !s.revealed.includes(s.sel) && (
                         <span
                             className="text-[13px] leading-none"
-                            title="送出後揭開這個地形"
+                            title={t("p4.map.lockedHint")}
                         >
                             🔒
                         </span>
@@ -549,15 +562,21 @@ export function P4Bots() {
                 {/* HUD */}
                 {fr && (
                     <div className="pointer-events-none absolute top-16 left-3.5 flex gap-5 rounded-md border border-border bg-bg/80 px-4 py-2 backdrop-blur-sm">
-                        <Hud label="EPOCH" value={`${s.view.step}/100`} />
                         <Hud
-                            label="讀數 · 1 位同學"
+                            label={t("p4.hud.epoch")}
+                            value={`${s.view.step}/100`}
+                        />
+                        <Hud
+                            label={t("p4.hud.read")}
                             value={fr.read.toFixed(3)}
                         />
-                        <Hud label="步長 (LR)" value={fr.lr.toFixed(2)} />
+                        <Hud
+                            label={t("p4.hud.lr")}
+                            value={fr.lr.toFixed(2)}
+                        />
                         {done && activeResult && (
                             <Hud
-                                label="裁判 · 全班"
+                                label={t("p4.hud.judge")}
                                 value={activeResult.trueLoss.toFixed(3)}
                                 hot
                             />
@@ -615,13 +634,15 @@ export function P4Bots() {
                                             : "border-border/60 hover:border-border"
                                     }`}
                                 >
-                                    <span>練習 {i + 1}</span>
+                                    <span>
+                                        {t("p4.chip.practice", { n: i + 1 })}
+                                    </span>
                                     <span className="font-mono text-[11px] text-accent">
                                         {run.trueLoss.toFixed(3)}
                                     </span>
                                     <span
                                         className="text-[13px] leading-none text-muted transition-colors group-hover:text-fg"
-                                        title="重播這次執行"
+                                        title={t("p4.chip.replay")}
                                         aria-hidden
                                     >
                                         ↻
@@ -683,6 +704,7 @@ function TerrainBuildOverlay({
         progress: number;
     };
 }) {
+    const { t } = useI18n();
     const errored = status.state === "error";
     const pct = Math.max(0, Math.min(100, Math.round(status.progress * 100)));
     return (
@@ -692,15 +714,14 @@ function TerrainBuildOverlay({
                     <span className="h-2.5 w-2.5 rounded-full bg-accent motion-safe:animate-pulse" />
                 </div>
                 <h2 className="font-display text-lg font-semibold text-fg">
-                    正在雕刻遠征地形
+                    {t("p4.build.title")}
                 </h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                    伺服器正在為今天的資料集建立兩個隱藏 loss
-                    地形；每次匯入只會做一次。 準備好後，這個階段會自動開啟。
+                    {t("p4.build.body")}
                 </p>
                 {errored ? (
                     <p className="mt-4 font-mono text-xs text-warning">
-                        請稍等，建立過程遇到問題，正在重試。
+                        {t("p4.build.error")}
                     </p>
                 ) : (
                     <div className="mt-5">

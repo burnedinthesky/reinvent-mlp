@@ -14,6 +14,7 @@ import {
     Select,
 } from "#/components/workshop/ui";
 import { LabeledSlider, Verdict } from "../ui";
+import { useI18n } from "#/lib/i18n/context";
 import { useCanvas } from "#/components/workshop/canvas/useCanvas";
 import { C, FONT_MONO, lossRamp, rgbCss } from "#/lib/workshop/theme";
 import {
@@ -44,6 +45,7 @@ export function GenerateSection({
     service: AdminService;
     onDataset: (d: DatasetInfo | null) => void;
 }) {
+    const { t } = useI18n();
     const [params, setParams] = useState<GenerateParams>(
         SYNTH_STRATEGIES[0].defaults
     );
@@ -138,20 +140,18 @@ export function GenerateSection({
     return (
         <div className="space-y-5">
             <div>
-                <MicroLabel accent>Generate</MicroLabel>
+                <MicroLabel accent>{t("admin.generate.eyebrow")}</MicroLabel>
                 <h2 className="mt-1 font-display text-xl font-semibold text-fg">
-                    Synthetic data
+                    {t("admin.generate.title")}
                 </h2>
                 <p className="text-sm text-muted">
-                    Shape the 500-point wedge — one line ≈85%, two lines ≈93–95%
-                    — then verify it clears the teaching bands. Running this
-                    unlocks the rest of the console.
+                    {t("admin.generate.body")}
                 </p>
             </div>
 
             <Island className="space-y-5 p-5">
                 <div className="flex items-center gap-2">
-                    <MicroLabel>Strategy</MicroLabel>
+                    <MicroLabel>{t("admin.generate.strategy")}</MicroLabel>
                     <SegmentedControl
                         value={params.strategy}
                         onChange={pickStrategy}
@@ -220,7 +220,9 @@ export function GenerateSection({
 
                 <div className="flex justify-end">
                     <PrimaryButton onClick={run} disabled={busy}>
-                        {busy ? "Generating…" : "Generate & verify"}
+                        {busy
+                            ? t("admin.generate.running")
+                            : t("admin.generate.run")}
                     </PrimaryButton>
                 </div>
             </Island>
@@ -229,14 +231,19 @@ export function GenerateSection({
                 <div className="grid grid-cols-[1fr_260px] gap-5 max-lg:grid-cols-1">
                     <VerificationView report={report} />
                     <Island className="p-4">
-                        <MicroLabel>Canonical wedge</MicroLabel>
+                        <MicroLabel>{t("admin.generate.wedge")}</MicroLabel>
                         <div className="mt-2 aspect-square w-full">
                             <WedgePreview report={report} />
                         </div>
                         <p className="mt-2 text-[11px] text-muted">
-                            class 1 = <span className="text-accent3">owl</span>,
-                            class 0 ={" "}
-                            <span className="text-accent2">early</span>
+                            {t("admin.generate.class1")}
+                            <span className="text-accent3">
+                                {t("admin.generate.owl")}
+                            </span>
+                            {t("admin.generate.class0")}
+                            <span className="text-accent2">
+                                {t("admin.generate.early")}
+                            </span>
                         </p>
                     </Island>
                 </div>
@@ -246,14 +253,14 @@ export function GenerateSection({
                 <Island className="space-y-3 p-5">
                     <div className="flex items-center justify-between gap-3">
                         <MicroLabel>
-                            Feature distribution · before / after
+                            {t("admin.generate.histogram")}
                         </MicroLabel>
                         <Select
                             value={feat}
                             onChange={(e) =>
                                 setFeat(e.target.value as FeatureKey)
                             }
-                            aria-label="Histogram feature"
+                            aria-label={t("admin.generate.histogramFeature")}
                         >
                             {AXIS_KEYS.map((k) => (
                                 <option key={k} value={k}>
@@ -266,12 +273,16 @@ export function GenerateSection({
                         <DistributionHistogram points={points} feat={feat} />
                     </div>
                     <p className="text-[11px] text-muted">
-                        <span className="text-accent">■ after</span> (real +
-                        synthetic) ·{" "}
-                        <span className="text-accent3">▭ before</span> (real
-                        only). y-axis = share of each set, so the ~
-                        {points.filter((p) => p.real).length}-row real set stays
-                        comparable.
+                        <span className="text-accent">
+                            {t("admin.generate.after")}
+                        </span>
+                        {t("admin.generate.histogramNote.mid")}
+                        <span className="text-accent3">
+                            {t("admin.generate.before")}
+                        </span>
+                        {t("admin.generate.histogramNote.tail", {
+                            realCount: points.filter((p) => p.real).length,
+                        })}
                     </p>
                 </Island>
             )}
@@ -283,17 +294,16 @@ export function GenerateSection({
                     <div className="flex items-center justify-between gap-3">
                         <div>
                             <MicroLabel accent>
-                                Expedition terrain · §4
+                                {t("admin.generate.terrain.eyebrow")}
                             </MicroLabel>
                             <p className="mt-1 text-sm text-muted">
-                                The two scored MLP surfaces the bots climb, with
-                                their hardness bands and the reference-bot
-                                ladder (醉猴 worst → a scan bot best). Re-roll
-                                for fresh surfaces.
+                                {t("admin.generate.terrain.body")}
                             </p>
                         </div>
                         <PrimaryButton onClick={reroll} disabled={rerolling}>
-                            {rerolling ? "Re-rolling…" : "Regenerate"}
+                            {rerolling
+                                ? t("admin.generate.terrain.rerolling")
+                                : t("admin.generate.terrain.regenerate")}
                         </PrimaryButton>
                     </div>
 
@@ -302,7 +312,9 @@ export function GenerateSection({
                         <Island className="space-y-2 p-4">
                             <div className="flex items-center justify-between text-xs">
                                 <span className="font-mono text-muted">
-                                    Carving terrains — {terrainStatus.phase}
+                                    {t("admin.generate.terrain.carving", {
+                                        phase: terrainStatus.phase,
+                                    })}
                                 </span>
                                 <span className="font-mono text-accent">
                                     {Math.round(terrainStatus.progress * 100)}%
@@ -321,8 +333,7 @@ export function GenerateSection({
                     {terrainStatus?.state === "error" && !terrains && (
                         <Island className="p-4">
                             <p className="text-xs text-warning">
-                                Terrain build failed — it will retry on the next
-                                fetch. Try re-rolling.
+                                {t("admin.generate.terrain.error")}
                             </p>
                         </Island>
                     )}
@@ -343,6 +354,7 @@ export function GenerateSection({
 /* One scored-terrain card: heading, band table (reusing the Verdict verdict dot),
    the 5 ladder means, and a top-down loss-heatmap preview. */
 function TerrainCard({ terrain }: { terrain: TerrainReport }) {
+    const { t } = useI18n();
     const passed = terrain.checks.filter((c) => c.pass).length;
     const ladderMin = Math.min(...terrain.ladder);
     const ladderMax = Math.max(...terrain.ladder);
@@ -362,7 +374,10 @@ function TerrainCard({ terrain }: { terrain: TerrainReport }) {
                             : "text-warning"
                     }`}
                 >
-                    {passed}/{terrain.checks.length} bands
+                    {t("admin.generate.terrain.bands", {
+                        passed,
+                        total: terrain.checks.length,
+                    })}
                 </span>
             </div>
 
@@ -400,7 +415,7 @@ function TerrainCard({ terrain }: { terrain: TerrainReport }) {
             </div>
 
             <div>
-                <MicroLabel>Ref-bot ladder · mean true loss</MicroLabel>
+                <MicroLabel>{t("admin.generate.terrain.ladder")}</MicroLabel>
                 <div className="mt-2 grid grid-cols-5 gap-1.5">
                     {terrain.ladder.map((v, i) => {
                         const best = v === ladderMin;
@@ -592,16 +607,19 @@ function bucketize(
 }
 
 function VerificationView({ report }: { report: VerificationReport }) {
+    const { t } = useI18n();
     return (
         <Island className="space-y-3 p-5">
             <div className="flex items-baseline justify-between">
-                <MicroLabel>Verification · §4.4</MicroLabel>
+                <MicroLabel>{t("admin.generate.verification.title")}</MicroLabel>
                 <span
                     className={`font-mono text-[11px] ${report.allPass ? "text-positive" : "text-warning"}`}
                 >
                     {report.allPass
-                        ? "all bands clear"
-                        : `${report.iterations} retune passes`}
+                        ? t("admin.generate.verification.allClear")
+                        : t("admin.generate.verification.retune", {
+                              iterations: report.iterations,
+                          })}
                 </span>
             </div>
             <div className="divide-y divide-border/50">

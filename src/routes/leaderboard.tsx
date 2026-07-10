@@ -8,24 +8,42 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { Island, MicroLabel } from "#/components/workshop/ui";
+import { useI18n } from "#/lib/i18n/context";
+import type { TranslateFn } from "#/lib/i18n/context";
+import type { MessageKey } from "#/lib/i18n/messages";
+import { LocaleProvider } from "#/lib/i18n/route";
 import { teamBoardsFn } from "#/lib/workshop/fn/leaderboard";
 import type { Phase, PhaseTeamBoard, TeamBoardRow } from "#/lib/workshop/types";
 
 export const Route = createFileRoute("/leaderboard")({
-    component: LeaderboardRoute,
+    component: LeaderboardRouteWithLocale,
 });
+
+function LeaderboardRouteWithLocale() {
+    return (
+        <LocaleProvider>
+            <LeaderboardRoute />
+        </LocaleProvider>
+    );
+}
 
 const POLL_MS = 2000;
 
-const PHASE_LABEL: Record<Phase, string> = {
-    P1: "猜猜類別",
-    P2: "圈選規則",
-    P3: "霧中直線",
-    P4: "訓練機器人",
-    P5: "神經元",
-    P6: "遊樂場",
-    NONE: "待機",
+const PHASE_NAME_KEY: Record<Phase, MessageKey> = {
+    P1: "phases.P1.name",
+    P2: "phases.P2.name",
+    P3: "phases.P3.name",
+    P4: "phases.P4.name",
+    P5: "phases.P5.name",
+    P6: "phases.P6.name",
+    NONE: "leaderboard.phase.none",
 };
+
+/** Localized phase display name — reuses the shared phase names, with the
+    leaderboard's own "standby" label for the blank stage. */
+function phaseLabel(t: TranslateFn, phase: Phase): string {
+    return t(PHASE_NAME_KEY[phase]);
+}
 
 const PHASE_CODE: Record<Phase, string> = {
     P1: "01",
@@ -45,6 +63,7 @@ function fmt(value: number | null, metric: "acc" | "loss"): string {
 /** Prominent header countdown to the operator's armed deadline. Re-renders every
     second off a local tick; shows --:-- when no countdown is live. */
 function Countdown({ deadline }: { deadline: string | null }) {
+    const { t } = useI18n();
     const [, setNow] = useState(() => 0);
     useEffect(() => {
         if (!deadline) return;
@@ -64,7 +83,7 @@ function Countdown({ deadline }: { deadline: string | null }) {
 
     return (
         <div className="text-right">
-            <MicroLabel>剩餘時間</MicroLabel>
+            <MicroLabel>{t("leaderboard.timeLeft")}</MicroLabel>
             <div
                 className={`font-mono text-4xl font-bold tabular-nums tracking-tight ${
                     secLeft === null
@@ -81,6 +100,7 @@ function Countdown({ deadline }: { deadline: string | null }) {
 }
 
 function LeaderboardRoute() {
+    const { t } = useI18n();
     // `undefined` = not loaded yet; `[]` = loaded, room on NONE (no phase). P4
     // returns two boards (Foothill / Range); every other phase returns one.
     const [boards, setBoards] = useState<PhaseTeamBoard[] | undefined>(
@@ -126,26 +146,30 @@ function LeaderboardRoute() {
                     </div>
                     <div>
                         <MicroLabel accent className="tracking-[.16em]">
-                            重新發明 MLP
+                            {t("leaderboard.brand")}
                         </MicroLabel>
                         <h1 className="font-display text-2xl font-bold tracking-tight">
-                            小隊排行榜
+                            {t("leaderboard.title")}
                         </h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-8">
                     {head && (
                         <div className="text-right">
-                            <MicroLabel>階段</MicroLabel>
+                            <MicroLabel>{t("leaderboard.phase")}</MicroLabel>
                             <div className="font-display text-xl font-semibold">
                                 {PHASE_CODE[head.phase]} ·{" "}
-                                {PHASE_LABEL[head.phase]}
+                                {phaseLabel(t, head.phase)}
                             </div>
                         </div>
                     )}
                     {head && <Countdown deadline={head.deadline} />}
                     <span
-                        title={online ? "即時更新中" : "重新連線中"}
+                        title={
+                            online
+                                ? t("leaderboard.live")
+                                : t("leaderboard.reconnecting")
+                        }
                         className={`h-3 w-3 rounded-full ${
                             online
                                 ? "bg-positive motion-safe:animate-pulse"
@@ -158,15 +182,15 @@ function LeaderboardRoute() {
             <main className="p-8">
                 {boards === undefined ? (
                     <div className="flex h-64 items-center justify-center text-muted">
-                        載入中…
+                        {t("leaderboard.loading")}
                     </div>
                 ) : boards.length === 0 ? (
                     <div className="flex h-64 flex-col items-center justify-center gap-2 text-muted">
                         <p className="font-display text-lg text-fg">
-                            尚未選擇階段
+                            {t("leaderboard.noPhase.title")}
                         </p>
                         <p className="text-sm">
-                            主持人開啟階段後，排行榜會自動顯示。
+                            {t("leaderboard.noPhase.body")}
                         </p>
                     </div>
                 ) : boards.length === 1 ? (
@@ -195,6 +219,7 @@ function PhaseBoard({
     board: PhaseTeamBoard;
     fill?: boolean;
 }) {
+    const { t } = useI18n();
     const rows = board.rows;
     return (
         <Island
@@ -206,16 +231,18 @@ function PhaseBoard({
                         {PHASE_CODE[board.phase]}
                     </span>
                     <MicroLabel accent className="text-base tracking-[.12em]">
-                        {board.label ?? PHASE_LABEL[board.phase]}
+                        {board.label ?? phaseLabel(t, board.phase)}
                     </MicroLabel>
                 </div>
                 <span className="font-mono text-[11px] tracking-wide text-muted uppercase">
-                    {board.metric === "acc" ? "準確率 ↑" : "loss ↓"}
+                    {board.metric === "acc"
+                        ? t("leaderboard.metric.acc")
+                        : t("leaderboard.metric.loss")}
                 </span>
             </div>
             {rows.length === 0 ? (
                 <div className="flex h-24 items-center justify-center text-sm text-muted">
-                    名單中還沒有小隊。
+                    {t("leaderboard.empty")}
                 </div>
             ) : (
                 <ol className="space-y-1">
@@ -235,6 +262,7 @@ function TeamRow({
     row: TeamBoardRow;
     metric: "acc" | "loss";
 }) {
+    const { t } = useI18n();
     return (
         <li className="flex items-center gap-4 rounded-md px-3 py-2.5 odd:bg-panel/40">
             <span
@@ -249,7 +277,7 @@ function TeamRow({
             </span>
             <span
                 className="font-mono text-[11px] tracking-wide text-muted"
-                title="已得分人數 / 名單人數"
+                title={t("leaderboard.scoredTitle")}
             >
                 {row.submitted}/{row.members}
             </span>

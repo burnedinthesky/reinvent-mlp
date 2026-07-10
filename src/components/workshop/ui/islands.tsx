@@ -4,6 +4,7 @@
 import { useRef, useState } from "react";
 
 import { MicroLabel } from "./typography";
+import { useI18n } from "#/lib/i18n/context";
 
 export function Island({
     className = "",
@@ -25,6 +26,7 @@ export function Island({
     them with <DockDivider />. Grab the grip at the top to reposition it when it
     covers the data or axis labels (Figma-style floating toolbar). */
 export function Dock({ children }: { children: React.ReactNode }) {
+    const { t } = useI18n();
     const [offset, setOffset] = useState({ x: 0, y: 0 });
     const drag = useRef<{
         px: number;
@@ -67,7 +69,7 @@ export function Dock({ children }: { children: React.ReactNode }) {
             >
                 <button
                     type="button"
-                    aria-label="拖曳工具列，點兩下重設位置"
+                    aria-label={t("ui.toolbar.dragAria")}
                     onPointerDown={onGripDown}
                     onDoubleClick={() => setOffset({ x: 0, y: 0 })}
                     className="flex touch-none cursor-grab items-center justify-center rounded-t-[18px] py-1.5 transition-colors hover:bg-border/30 active:cursor-grabbing"

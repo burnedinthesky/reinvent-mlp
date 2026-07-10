@@ -33,6 +33,7 @@ import { paintVol } from "#/lib/workshop/draw/paintVol";
 import { drawProbBars, drawWeightStrip } from "#/lib/workshop/draw/probBars";
 import { drawSpark } from "#/lib/workshop/draw/spark";
 import { C, FONT_MONO, rgbCss } from "#/lib/workshop/theme";
+import { useI18n, type TranslateFn } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 
 const LRS = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5"];
@@ -87,6 +88,7 @@ function WidthRow({
 
 export function P6Playground() {
     const { store, patch, cnnEngineRef } = useWorkshop();
+    const { t } = useI18n();
     const s = store.p6;
     const [, bump] = useReducer((x: number) => x + 1, 0);
     const [hover, setHover] = useState<Neuron | null>(null);
@@ -157,9 +159,9 @@ export function P6Playground() {
 
     const { ref: detailRef, paint: paintDetail } = useCanvas(
         (ctx, W, H) => {
-            drawDetail(ctx, W, H, inspect, client, ready);
+            drawDetail(ctx, W, H, inspect, client, ready, t);
         },
-        [inspect, ready, snap]
+        [inspect, ready, snap, t]
     );
 
     const { ref: softmaxRef, paint: paintSoftmax } = useCanvas(
@@ -387,7 +389,7 @@ export function P6Playground() {
     }, [client, ready, s.running]);
 
     const loading = !ready || client?.loadingDataset != null;
-    const inspectLabel = describeInspect(inspect, ready);
+    const inspectLabel = describeInspect(inspect, ready, t);
 
     return (
         <div className="absolute inset-0 grid grid-cols-[380px_1fr] gap-3.5 p-3.5">
@@ -396,20 +398,22 @@ export function P6Playground() {
                 <div>
                     <div className="flex items-baseline justify-between">
                         <MicroLabel accent className="text-[11px]">
-                            Phase 06 · 遊樂場
+                            {t("p6.header.phase")}
                         </MicroLabel>
                         <span className="font-mono text-xs tracking-wide text-muted uppercase">
-                            不計分
+                            {t("p6.header.noScore")}
                         </span>
                     </div>
                     <h2 className="mt-1 font-display text-lg font-bold tracking-tight text-fg">
-                        訓練影像神經網路
+                        {t("p6.header.title")}
                     </h2>
                 </div>
 
                 {/* dataset picker */}
                 <div>
-                    <MicroLabel className="mb-1.5 block">資料集</MicroLabel>
+                    <MicroLabel className="mb-1.5 block">
+                        {t("p6.dataset")}
+                    </MicroLabel>
                     <div className="grid grid-cols-2 gap-2">
                         {DATASET_IDS.map((id) => (
                             <button
@@ -438,7 +442,7 @@ export function P6Playground() {
                             disabled={loading}
                             className="flex-1 rounded-md border border-border bg-panel px-3.5 py-2.5 font-display text-sm font-bold text-muted transition-colors hover:text-fg disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                            ⏸ 暫停
+                            {t("p6.transport.pause")}
                         </button>
                     ) : (
                         <PrimaryButton
@@ -446,7 +450,7 @@ export function P6Playground() {
                             disabled={loading}
                             className="flex-1 py-2.5 font-display font-bold"
                         >
-                            ▶ 訓練
+                            {t("p6.transport.train")}
                         </PrimaryButton>
                     )}
                     <GhostButton
@@ -455,16 +459,16 @@ export function P6Playground() {
                         onClick={stepOnce}
                         disabled={loading}
                     >
-                        單步
+                        {t("p6.transport.step")}
                     </GhostButton>
                     <GhostButton
                         bordered
                         className="px-3 py-2.5"
                         onClick={reset}
                         disabled={loading}
-                        title="重新抽取隨機權重"
+                        title={t("p6.transport.resetTitle")}
                     >
-                        ↺ 重設
+                        {t("p6.transport.reset")}
                     </GhostButton>
                 </div>
 
@@ -472,12 +476,12 @@ export function P6Playground() {
                 <div className="flex flex-col gap-2.5 rounded-md border border-border/40 bg-bg px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
                         <span className="flex-1 text-xs font-semibold text-muted">
-                            隱藏層數
+                            {t("p6.arch.layers")}
                         </span>
                         <SegmentedControl<string>
                             size="sm"
                             mono
-                            ariaLabel="隱藏層數"
+                            ariaLabel={t("p6.arch.layers")}
                             value={String(archLayers)}
                             options={[
                                 { value: "1", label: "1" },
@@ -488,19 +492,19 @@ export function P6Playground() {
                     </div>
                     {archLayers === 1 ? (
                         <WidthRow
-                            label="寬度"
+                            label={t("p6.arch.width")}
                             value={archWidths[0]}
                             onChange={(w) => setWidthAt(0, w)}
                         />
                     ) : (
                         <>
                             <WidthRow
-                                label="第 1 層寬度"
+                                label={t("p6.arch.widthL1")}
                                 value={archWidths[0]}
                                 onChange={(w) => setWidthAt(0, w)}
                             />
                             <WidthRow
-                                label="第 2 層寬度"
+                                label={t("p6.arch.widthL2")}
                                 value={archWidths[1]}
                                 onChange={(w) => setWidthAt(1, w)}
                             />
@@ -508,13 +512,13 @@ export function P6Playground() {
                     )}
                     <div>
                         <span className="mb-1.5 block text-xs font-semibold text-muted">
-                            活化函數
+                            {t("p6.arch.activation")}
                         </span>
                         <ActivationPicker value={s.act} onChange={setAct} />
                     </div>
                     <div className="flex items-center gap-2.5">
                         <span className="flex-1 text-xs font-semibold text-muted">
-                            學習率
+                            {t("p6.lr")}
                         </span>
                         <Select
                             value={s.lr}
@@ -529,23 +533,23 @@ export function P6Playground() {
                     </div>
                     <div className="flex items-center gap-2.5">
                         <span className="flex-1 text-xs font-semibold text-muted">
-                            學習率衰減
+                            {t("p6.lrDecay")}
                         </span>
                         <SegmentedControl<string>
                             size="sm"
                             mono
-                            ariaLabel="學習率衰減"
+                            ariaLabel={t("p6.lrDecay")}
                             value={s.lrDecay ? "on" : "off"}
                             options={[
-                                { value: "off", label: "關" },
-                                { value: "on", label: "開" },
+                                { value: "off", label: t("p6.toggle.off") },
+                                { value: "on", label: t("p6.toggle.on") },
                             ]}
                             onChange={(v) => setDecay(v === "on")}
                         />
                     </div>
                     <div className="flex items-center gap-2.5">
                         <span className="flex-1 text-xs font-semibold text-muted">
-                            批次大小
+                            {t("p6.batchSize")}
                         </span>
                         <Select
                             value={String(s.batchSize)}
@@ -563,7 +567,7 @@ export function P6Playground() {
                 {/* stats */}
                 <div className="flex items-center gap-4">
                     <div>
-                        <MicroLabel>步數</MicroLabel>
+                        <MicroLabel>{t("p6.stats.steps")}</MicroLabel>
                         <div className="font-mono text-lg font-semibold text-fg">
                             {s.step}
                         </div>
@@ -575,7 +579,7 @@ export function P6Playground() {
                         </div>
                     </div>
                     <div>
-                        <MicroLabel>訓練</MicroLabel>
+                        <MicroLabel>{t("p6.stats.train")}</MicroLabel>
                         <div className="font-mono text-lg font-semibold text-fg">
                             {s.acc != null
                                 ? (s.acc * 100).toFixed(0) + "%"
@@ -583,7 +587,7 @@ export function P6Playground() {
                         </div>
                     </div>
                     <div>
-                        <MicroLabel>驗證</MicroLabel>
+                        <MicroLabel>{t("p6.stats.val")}</MicroLabel>
                         <div className="font-mono text-lg font-semibold text-accent">
                             {s.valAcc != null
                                 ? (s.valAcc * 100).toFixed(0) + "%"
@@ -604,7 +608,9 @@ export function P6Playground() {
                         </div>
                     </div>
                     <div>
-                        <MicroLabel className="mb-1 block">準確率</MicroLabel>
+                        <MicroLabel className="mb-1 block">
+                            {t("p6.spark.accuracy")}
+                        </MicroLabel>
                         <div className="h-10 rounded-md border border-border/40 bg-bg">
                             <canvas
                                 ref={accRef}
@@ -631,7 +637,9 @@ export function P6Playground() {
                             <div className="flex flex-col items-center gap-2 text-muted">
                                 <span className="h-2.5 w-2.5 rounded-full bg-accent motion-safe:animate-pulse" />
                                 <span className="font-mono text-[11px] tracking-[.2em] uppercase">
-                                    載入中 {DATASET_LABEL[s.dataset]}
+                                    {t("p6.loading", {
+                                        dataset: DATASET_LABEL[s.dataset],
+                                    })}
                                 </span>
                             </div>
                         </div>
@@ -646,7 +654,7 @@ export function P6Playground() {
                                     onClick={() =>
                                         patch("p6", { selectedNeuron: null })
                                     }
-                                    aria-label="關閉神經元細節"
+                                    aria-label={t("p6.detail.closeAria")}
                                     className="px-1 text-muted transition-colors hover:text-fg"
                                 >
                                     ✕
@@ -666,7 +674,7 @@ export function P6Playground() {
                 <div className="grid grid-cols-[auto_1fr] gap-4">
                     <div>
                         <MicroLabel className="mb-1.5 block">
-                            輸入圖片{" "}
+                            {t("p6.input.label")}{" "}
                             {ready && snap
                                 ? `· ${ready.classNames[snap.label] ?? snap.label}`
                                 : ""}
@@ -685,14 +693,14 @@ export function P6Playground() {
                                         className="px-2.5 py-1.5 text-xs"
                                         onClick={() => cycleInput(-1)}
                                     >
-                                        ‹ 上一張
+                                        {t("p6.input.prev")}
                                     </GhostButton>
                                     <GhostButton
                                         bordered
                                         className="px-2.5 py-1.5 text-xs"
                                         onClick={() => cycleInput(1)}
                                     >
-                                        下一張 ›
+                                        {t("p6.input.next")}
                                     </GhostButton>
                                 </div>
                                 <GhostButton
@@ -700,14 +708,14 @@ export function P6Playground() {
                                     className="px-2.5 py-1.5 text-xs"
                                     onClick={randomInput}
                                 >
-                                    🎲 隨機
+                                    {t("p6.input.random")}
                                 </GhostButton>
                             </div>
                         </div>
                     </div>
                     <div className="flex min-w-0 flex-col">
                         <MicroLabel accent className="mb-1.5 block">
-                            輸出 · 類別機率
+                            {t("p6.output.probs")}
                         </MicroLabel>
                         <div className="h-[calc(84px_+_10vh)] overflow-hidden rounded-md bg-bg">
                             <canvas
@@ -729,7 +737,8 @@ function drawDetail(
     H: number,
     inspect: Neuron | null,
     client: MlpNetClient | null,
-    ready: MlpNetClient["ready"] | null
+    ready: MlpNetClient["ready"] | null,
+    t: TranslateFn
 ) {
     ctx.fillStyle = rgbCss(C.muted, 0.6);
     ctx.font = `500 11px ${FONT_MONO}`;
@@ -756,7 +765,7 @@ function drawDetail(
                 side,
                 "image"
             );
-        } else ctx.fillText("滑過神經元", W / 2, H / 2);
+        } else ctx.fillText(t("p6.detail.hoverHint"), W / 2, H / 2);
         return;
     }
     const w = client.weights.get(`${inspect.layer}:${inspect.idx}`);
@@ -779,7 +788,9 @@ function drawDetail(
         ctx.fillStyle = rgbCss(C.muted);
         ctx.font = `500 10px ${FONT_MONO}`;
         ctx.fillText(
-            act != null ? `活化值 ${act.toFixed(2)}` : "權重模板",
+            act != null
+                ? t("p6.detail.activation", { value: act.toFixed(2) })
+                : t("p6.detail.weightTemplate"),
             W / 2,
             H - 9
         );
@@ -789,7 +800,9 @@ function drawDetail(
         ctx.fillStyle = rgbCss(C.muted);
         ctx.font = `500 10px ${FONT_MONO}`;
         ctx.fillText(
-            act != null ? `活化值 ${act.toFixed(2)}` : "權重",
+            act != null
+                ? t("p6.detail.activation", { value: act.toFixed(2) })
+                : t("p6.detail.weight"),
             W / 2,
             H - 9
         );
@@ -800,12 +813,18 @@ function drawDetail(
 
 function describeInspect(
     inspect: Neuron | null,
-    ready: MlpNetClient["ready"] | null
+    ready: MlpNetClient["ready"] | null,
+    t: TranslateFn
 ): string {
-    if (!ready || inspect == null || inspect.layer === -1) return "輸入圖片";
+    if (!ready || inspect == null || inspect.layer === -1)
+        return t("p6.inspect.input");
     const L = ready.layers.length;
     const isOutput = inspect.layer === L - 2; // fc L-1 maps to output column
-    if (inspect.layer === 0) return `隱藏層 1 · 神經元 ${inspect.idx + 1}`;
-    if (isOutput) return `輸出層 · 神經元 ${inspect.idx + 1}`;
-    return `隱藏層 ${inspect.layer + 1} · 神經元 ${inspect.idx + 1}`;
+    if (inspect.layer === 0)
+        return t("p6.inspect.hidden1", { n: inspect.idx + 1 });
+    if (isOutput) return t("p6.inspect.output", { n: inspect.idx + 1 });
+    return t("p6.inspect.hiddenN", {
+        layer: inspect.layer + 1,
+        n: inspect.idx + 1,
+    });
 }

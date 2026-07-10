@@ -35,6 +35,7 @@ import { drawSpark } from "#/lib/workshop/draw/spark";
 import { classHeatRGBA } from "#/lib/workshop/theme";
 import type { NetView } from "#/lib/workshop/mlp";
 import type { FeatureKey } from "#/lib/workshop/types";
+import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 
 const LRS = ["0.003", "0.01", "0.03", "0.1", "0.3", "1", "3"];
@@ -53,6 +54,7 @@ export function P5Neuron() {
         p5EngineRef,
         caps,
     } = useWorkshop();
+    const { t } = useI18n();
     const cap = caps.P5 ?? P5_CAP;
     const s = store.p5;
     const deep = reveals?.p5_deep === true;
@@ -160,7 +162,7 @@ export function P5Neuron() {
                     config!.features[s.xKey],
                     config!.features[s.yKey],
                     inLabels,
-                    "P(夜貓)",
+                    t("p5.output.label"),
                     classHeatRGBA
                 );
         },
@@ -324,7 +326,9 @@ export function P5Neuron() {
                 judgedLoss: res.loss_full,
             });
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "送出被拒絕");
+            toast.error(
+                e instanceof Error ? e.message : t("p5.submit.rejected")
+            );
         } finally {
             setSubmitting(false);
         }
@@ -342,7 +346,7 @@ export function P5Neuron() {
         canInc: boolean;
     }[] = [
         {
-            label: "隱藏層數",
+            label: t("p5.arch.layers"),
             val: s.layers,
             dec: () => s.layers > 1 && setArch({ layers: s.layers - 1 }),
             inc: () => s.layers < 2 && setArch({ layers: s.layers + 1 }),
@@ -350,7 +354,7 @@ export function P5Neuron() {
             canInc: s.layers < 2,
         },
         {
-            label: "神經元 · 第 1 層",
+            label: t("p5.arch.neuronsL1"),
             val: s.n1,
             dec: () => s.n1 > 1 && setArch({ n1: s.n1 - 1 }),
             inc: () => s.n1 < 6 && setArch({ n1: s.n1 + 1 }),
@@ -360,7 +364,7 @@ export function P5Neuron() {
     ];
     if (s.layers >= 2)
         steppers.push({
-            label: "神經元 · 第 2 層",
+            label: t("p5.arch.neuronsL2"),
             val: s.n2,
             dec: () => s.n2 > 1 && setArch({ n2: s.n2 - 1 }),
             inc: () => s.n2 < 6 && setArch({ n2: s.n2 + 1 }),
@@ -375,7 +379,9 @@ export function P5Neuron() {
                 disabled={left <= 0 || submitting}
                 className="flex-1 py-2.5 font-display font-bold"
             >
-                {left <= 0 ? "沒有剩餘機會" : "送出評分"}
+                {left <= 0
+                    ? t("p5.submit.noAttempts")
+                    : t("p5.submit.grade")}
             </PrimaryButton>
             <span className="font-mono text-[11px] tracking-wide text-muted uppercase">
                 {String(s.attempt).padStart(2, "0")}/{cap}
@@ -425,18 +431,21 @@ export function P5Neuron() {
                             />
                         </div>
                         <p className="text-[11px] leading-relaxed text-muted">
-                            p = σ(w1·x + w2·y + b)，座標軸已做 z-score。拖曳到
-                            loss 下降； 點右上角的輸出節點可以看 σ 如何壓縮 z。
+                            {t("p5.stage1.hint")}
                         </p>
                         {submitRow}
                     </>
                 ) : (
                     <>
                         <div className="flex items-baseline justify-between">
-                            <MicroLabel accent>往更深處</MicroLabel>
+                            <MicroLabel accent>
+                                {t("p5.stage2.title")}
+                            </MicroLabel>
                             <span className="font-mono text-[10px] tracking-wide text-muted uppercase">
-                                {p5Points.filter((p) => !p.hidden).length}{" "}
-                                個訓練點
+                                {t("p5.stage2.trainPoints", {
+                                    count: p5Points.filter((p) => !p.hidden)
+                                        .length,
+                                })}
                             </span>
                         </div>
 
@@ -450,7 +459,7 @@ export function P5Neuron() {
                                     }
                                     className="flex-1 rounded-md border border-border bg-panel px-3 py-2 font-display text-sm font-bold text-muted transition-colors hover:text-fg"
                                 >
-                                    ⏸ 暫停
+                                    {t("p5.transport.pause")}
                                 </button>
                             ) : (
                                 <PrimaryButton
@@ -459,7 +468,7 @@ export function P5Neuron() {
                                     }
                                     className="flex-1 py-2 font-display font-bold"
                                 >
-                                    ▶ 訓練
+                                    {t("p5.transport.train")}
                                 </PrimaryButton>
                             )}
                             <GhostButton
@@ -467,13 +476,13 @@ export function P5Neuron() {
                                 className="px-2.5 py-2"
                                 onClick={stepOnce}
                             >
-                                單步 ×10
+                                {t("p5.transport.step")}
                             </GhostButton>
                             <GhostButton
                                 bordered
                                 className="px-2.5 py-2"
                                 onClick={reset}
-                                title="重新抽取隨機權重"
+                                title={t("p5.transport.resetTitle")}
                             >
                                 ↺
                             </GhostButton>
@@ -512,7 +521,7 @@ export function P5Neuron() {
                             ))}
                             <div className="flex items-center gap-2.5">
                                 <span className="flex-1 text-xs font-semibold text-muted">
-                                    學習率
+                                    {t("p5.lr")}
                                 </span>
                                 <Select
                                     value={s.lr}
@@ -533,7 +542,7 @@ export function P5Neuron() {
                         {readout}
                         <div className="flex items-center gap-3.5 border-t border-border/40 pt-2">
                             <div>
-                                <MicroLabel>步數</MicroLabel>
+                                <MicroLabel>{t("p5.steps")}</MicroLabel>
                                 <div className="font-mono text-lg font-semibold text-fg">
                                     {s.step}
                                 </div>
@@ -558,7 +567,9 @@ export function P5Neuron() {
                 bodyClassName="flex flex-col gap-2 px-3 pb-3"
             >
                 <MicroLabel className="block">
-                    {stage === 1 ? "網路" : "網路 — 點擊神經元"}
+                    {stage === 1
+                        ? t("p5.preview.title")
+                        : t("p5.preview.titleClickable")}
                 </MicroLabel>
                 <div className="h-[150px] overflow-hidden rounded-md border border-border/40 bg-bg">
                     <canvas
@@ -572,13 +583,13 @@ export function P5Neuron() {
                         <div className="flex items-center justify-between">
                             {/* normal-case keeps σ from uppercasing into Σ (reads as summation) */}
                             <MicroLabel>
-                                <span className="normal-case">σ(z)</span> —
-                                壓縮分數
+                                <span className="normal-case">σ(z)</span> —{" "}
+                                {t("p5.sigmoid.title")}
                             </MicroLabel>
                             <GhostButton
                                 className="px-1.5 py-0 text-[11px]"
                                 onClick={() => setExpanded(false)}
-                                aria-label="關閉 sigmoid 圖"
+                                aria-label={t("p5.sigmoid.closeAria")}
                             >
                                 ✕
                             </GhostButton>
@@ -625,16 +636,16 @@ export function P5Neuron() {
                 </div>
                 <DockDivider />
                 <div className="flex items-center gap-2">
-                    <MicroLabel>預覽</MicroLabel>
+                    <MicroLabel>{t("p5.dock.preview")}</MicroLabel>
                     <button
                         type="button"
                         role="switch"
                         aria-checked={s.preview}
-                        aria-label="預覽預測結果"
+                        aria-label={t("p5.dock.previewAria")}
                         onClick={() =>
                             patch("p5", (st) => ({ preview: !st.preview }))
                         }
-                        title="依照神經元預測的類別重新上色"
+                        title={t("p5.dock.previewTitle")}
                         className={`relative inline-flex h-[18px] w-[30px] shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                             s.preview ? "bg-accent" : "bg-border"
                         }`}
@@ -664,6 +675,7 @@ function DragPanel({
     bodyClassName: string;
     children: React.ReactNode;
 }) {
+    const { t } = useI18n();
     const [pos, setPos] = useState({ x: 0, y: 0 });
     const drag = useRef<{
         px: number;
@@ -699,7 +711,7 @@ function DragPanel({
             <Island className="overflow-hidden">
                 <button
                     type="button"
-                    aria-label="拖曳面板，點兩下重設位置"
+                    aria-label={t("p5.panel.dragAria")}
                     onPointerDown={onGrip}
                     onDoubleClick={() => setPos({ x: 0, y: 0 })}
                     className="flex w-full touch-none cursor-grab items-center justify-center py-1.5 transition-colors hover:bg-border/30 active:cursor-grabbing"
@@ -726,19 +738,20 @@ function Readout({
     judgedLoss: number | null;
     judgedAcc: number | null;
 }) {
+    const { t } = useI18n();
     return (
         <div className="flex items-stretch gap-3">
             <div className="flex-1">
-                <MicroLabel>即時 · 訓練</MicroLabel>
+                <MicroLabel>{t("p5.readout.liveTrain")}</MicroLabel>
                 <div className="mt-0.5 font-mono text-2xl font-semibold text-fg">
                     {liveLoss == null ? "--" : liveLoss.toFixed(3)}
                 </div>
                 <div className="mt-0.5 font-mono text-[10px] text-muted">
-                    準確率 {liveAcc.toFixed(1)}%
+                    {t("p5.readout.accuracy")} {liveAcc.toFixed(1)}%
                 </div>
             </div>
             <div className="flex-1 border-l border-border/40 pl-3">
-                <MicroLabel>評分 · 測試</MicroLabel>
+                <MicroLabel>{t("p5.readout.judgedTest")}</MicroLabel>
                 <div
                     className={`mt-0.5 font-mono text-2xl font-semibold ${
                         judgedLoss == null ? "text-muted" : "text-accent"
@@ -747,7 +760,7 @@ function Readout({
                     {judgedLoss == null ? "--" : judgedLoss.toFixed(3)}
                 </div>
                 <div className="mt-0.5 font-mono text-[10px] text-muted">
-                    準確率{" "}
+                    {t("p5.readout.accuracy")}{" "}
                     {judgedAcc == null ? "--" : `${judgedAcc.toFixed(1)}%`}
                 </div>
             </div>

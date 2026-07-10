@@ -29,6 +29,7 @@ import {
     pointPx,
 } from "#/lib/workshop/draw/scatter";
 import { C, CANVAS, CLASS_COLOR, rgbCss } from "#/lib/workshop/theme";
+import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 
 const CANON_VIEW = { x: CANONICAL_X, y: CANONICAL_Y };
@@ -42,6 +43,7 @@ const floor2 = (v: number) => (Math.floor(v * 100) / 100).toFixed(2);
 const clampLim = (v: number) => Math.max(-LIM, Math.min(LIM, v));
 
 export function P3Line() {
+    const { t } = useI18n();
     const { config, points, reveals, service, store, patch, caps } =
         useWorkshop();
     const s = store.p3;
@@ -241,7 +243,7 @@ export function P3Line() {
             }));
             startFlash(res.wrong);
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : "送出被拒絕");
+            toast.error(e instanceof Error ? e.message : t("p3.toast.rejected"));
         } finally {
             setSubmitting(false);
         }
@@ -265,10 +267,10 @@ export function P3Line() {
                 className="flex-1 py-2 text-[13px]"
             >
                 {submitting
-                    ? "評分中…"
+                    ? t("p3.submit.judging")
                     : left <= 0
-                      ? "沒有剩餘機會"
-                      : "送出評分"}
+                      ? t("p3.submit.noAttempts")
+                      : t("p3.submit.go")}
             </PrimaryButton>
             <span className="font-mono text-[11px] tracking-wide text-muted uppercase">
                 {String(s.attempt).padStart(2, "0")}/{cap}
@@ -329,7 +331,7 @@ export function P3Line() {
                 <Island className="overflow-hidden">
                     <button
                         type="button"
-                        aria-label="拖曳面板，點兩下重設位置"
+                        aria-label={t("p3.panel.grip")}
                         onPointerDown={onPanelGrip}
                         onDoubleClick={() => setPanelPos({ x: 0, y: 0 })}
                         className="flex w-full touch-none cursor-grab items-center justify-center py-1.5 transition-colors hover:bg-border/30 active:cursor-grabbing"
@@ -365,19 +367,22 @@ function Readout({
     loss: number | null;
     full: number | null;
 }) {
+    const { t } = useI18n();
     return (
         <div className="flex items-stretch gap-3">
             <div className="flex-1">
-                <MicroLabel>即時 · loss</MicroLabel>
+                <MicroLabel>{t("p3.readout.liveLoss")}</MicroLabel>
                 <div className="mt-0.5 font-mono text-2xl font-semibold text-fg">
                     {liveLoss.toFixed(3)}
                 </div>
                 <div className="mt-0.5 font-mono text-[10px] text-muted">
-                    準確率 {(visAcc * 100).toFixed(1)}%
+                    {t("p3.readout.accuracy", {
+                        pct: `${(visAcc * 100).toFixed(1)}%`,
+                    })}
                 </div>
             </div>
             <div className="flex-1 border-l border-border/40 pl-3">
-                <MicroLabel>評分 loss</MicroLabel>
+                <MicroLabel>{t("p3.readout.judgedLoss")}</MicroLabel>
                 <div
                     className={`mt-0.5 font-mono text-2xl font-semibold ${
                         loss == null ? "text-muted" : "text-accent"
@@ -386,7 +391,9 @@ function Readout({
                     {loss == null ? "--" : loss.toFixed(3)}
                 </div>
                 <div className="mt-0.5 font-mono text-[10px] text-muted">
-                    準確率 {full == null ? "--" : `${full.toFixed(1)}%`}
+                    {t("p3.readout.accuracy", {
+                        pct: full == null ? "--" : `${full.toFixed(1)}%`,
+                    })}
                 </div>
             </div>
         </div>
@@ -399,10 +406,11 @@ function History({
 }: {
     probes: { w: number; b: number; loss: number; acc: number }[];
 }) {
+    const { t } = useI18n();
     if (!probes.length) return null;
     return (
         <div className="mt-2.5 flex flex-col gap-1 border-t border-border/40 pt-2.5">
-            <MicroLabel>歷史紀錄</MicroLabel>
+            <MicroLabel>{t("p3.history.title")}</MicroLabel>
             <div className="mt-0.5 flex max-h-40 flex-col gap-0.5 overflow-auto">
                 {probes
                     .map((p, i) => ({ p, i }))
@@ -432,9 +440,10 @@ function WSlider({
     w: number;
     onChange: (w: number) => void;
 }) {
+    const { t } = useI18n();
     return (
         <div className="flex h-full flex-col items-center gap-2 px-3 py-3.5">
-            <MicroLabel>w · 斜率</MicroLabel>
+            <MicroLabel>{t("p3.slider.slope")}</MicroLabel>
             <span className="font-mono text-lg font-semibold text-fg">
                 {(w >= 0 ? "+" : "") + w.toFixed(2)}
             </span>
@@ -446,7 +455,7 @@ function WSlider({
                     step={0.01}
                     value={w}
                     onChange={(e) => onChange(Number(e.target.value))}
-                    aria-label="斜率 w"
+                    aria-label={t("p3.slider.slopeAria")}
                     className="cursor-pointer accent-accent"
                     style={{
                         writingMode: "vertical-lr",
@@ -478,6 +487,7 @@ function WBSquare({
     probes: Probe[];
     onChange: (w: number, b: number) => void;
 }) {
+    const { t } = useI18n();
     const dragRef = useRef(false);
     const geomRef = useRef<{ l: number; t: number; pw: number; ph: number }>({
         l: 0,
@@ -547,11 +557,11 @@ function WBSquare({
             ctx.font = `600 10px ${"IBM Plex Mono, monospace"}`;
             ctx.textAlign = "center";
             ctx.textBaseline = "top";
-            ctx.fillText("W · 斜率", g.l + g.pw / 2, g.t + g.ph + 10);
+            ctx.fillText(t("p3.square.wAxis"), g.l + g.pw / 2, g.t + g.ph + 10);
             ctx.save();
             ctx.translate(g.l - 12, g.t + g.ph / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText("B · 高度", 0, 0);
+            ctx.fillText(t("p3.square.bAxis"), 0, 0);
             ctx.restore();
             // permanent probe dots
             probes.forEach((p) => {
@@ -591,7 +601,7 @@ function WBSquare({
             ctx.fillStyle = rgbCss(C.fg);
             ctx.fillText(label, ax + (flip ? -12 : 12), ay - 10);
         },
-        [w, b, probes, hover]
+        [w, b, probes, hover, t]
     );
 
     const evtPx = (e: React.MouseEvent): [number, number] => {

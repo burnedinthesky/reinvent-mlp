@@ -9,6 +9,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useI18n } from "#/lib/i18n/context";
 import {
     DIR8,
     DIR_ARROW,
@@ -134,6 +135,7 @@ export function CompassRose({
     onPickRandom?: () => void;
     onPickVar?: (slot: VarSlot) => void;
 }) {
+    const { t } = useI18n();
     const cell = (r: number, c: number) => {
         if (r === 1 && c === 1) {
             if (center === "here") {
@@ -144,7 +146,7 @@ export function CompassRose({
                         onClick={onPickHere}
                         className="flex h-9 w-9 items-center justify-center rounded bg-black/30 font-mono text-[10px] font-bold text-white hover:bg-accent hover:text-accent-fg"
                     >
-                        這裡
+                        {t("p4.param.here")}
                     </button>
                 );
             }
@@ -179,7 +181,7 @@ export function CompassRose({
                             onClick={onPickRandom}
                             className="rounded bg-black/30 px-2 py-1 font-mono text-[10px] font-semibold text-white hover:bg-accent hover:text-accent-fg"
                         >
-                            🎲 隨機
+                            {t("p4.param.random")}
                         </button>
                     )}
                     {dirVars.map((slot) => (
@@ -287,6 +289,7 @@ export function SlotPicker({
     names?: Record<VarSlot, string>;
     onPick: (slot: VarSlot) => void;
 }) {
+    const { t } = useI18n();
     return (
         <div className="flex w-[168px] flex-col gap-1">
             {VAR_SLOTS.map((slot) => {
@@ -299,7 +302,9 @@ export function SlotPicker({
                         disabled={!ok}
                         onClick={() => onPick(slot)}
                         title={
-                            ok ? `存進 ${label}` : "這格目前存的是另一種類型"
+                            ok
+                                ? t("p4.param.bindTo", { name: label })
+                                : t("p4.param.bindConflict")
                         }
                         className={`flex items-center gap-2 rounded px-2 py-1.5 text-left font-mono text-[11px] font-semibold ${
                             ok

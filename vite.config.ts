@@ -72,7 +72,7 @@ function p7DatasetGuard(): Plugin {
 const config = defineConfig({
     resolve: { tsconfigPaths: true },
     server: {
-        allowedHosts: ["7ea3-140-113-136-213.ngrok-free.app", "camp-ml.kuo.is"],
+        allowedHosts: ["mlp.kuo.is"],
     },
     plugins: [
         p7DatasetGuard(),

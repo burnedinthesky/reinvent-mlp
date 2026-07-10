@@ -87,8 +87,11 @@ export function WarnBanner({ children }: { children: React.ReactNode }) {
     );
 }
 
+import { useI18n } from "#/lib/i18n/context";
+
 /** A small pass/fail dot + label, for verification rows. */
 export function Verdict({ pass }: { pass: boolean }) {
+    const { t } = useI18n();
     return (
         <span
             className={`inline-flex items-center gap-1.5 font-mono text-[11px] uppercase ${
@@ -98,7 +101,7 @@ export function Verdict({ pass }: { pass: boolean }) {
             <span
                 className={`h-2 w-2 rounded-full ${pass ? "bg-positive" : "bg-warning"}`}
             />
-            {pass ? "pass" : "tune"}
+            {pass ? t("admin.ui.pass") : t("admin.ui.tune")}
         </span>
     );
 }

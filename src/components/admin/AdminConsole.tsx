@@ -12,6 +12,7 @@ import { ScoresSection } from "./sections/ScoresSection";
 import { WhitelistSection } from "./sections/WhitelistSection";
 import { StatusStrip } from "./StatusStrip";
 import { MicroLabel, PrimaryButton } from "#/components/workshop/ui";
+import { useI18n } from "#/lib/i18n/context";
 import { getAdminService } from "#/lib/workshop/admin-service";
 import type { DatasetInfo } from "#/lib/workshop/admin-service";
 import type { ServerState } from "#/lib/workshop/types";
@@ -113,6 +114,7 @@ export function AdminConsole({ initialToken }: { initialToken?: string }) {
 }
 
 function TokenGate({ onToken }: { onToken: (t: string) => void }) {
+    const { t } = useI18n();
     const [value, setValue] = useState("");
     const submit = () => {
         const t = value.trim();
@@ -128,22 +130,23 @@ function TokenGate({ onToken }: { onToken: (t: string) => void }) {
         <div className="flex h-screen items-center justify-center bg-bg bg-[radial-gradient(1000px_500px_at_30%_-10%,#171717_0%,#0a0a0a_60%)] text-fg">
             <div className="w-[420px] rounded-[18px] border border-border bg-panel px-9 py-9 shadow-lg motion-safe:animate-pop-in">
                 <MicroLabel accent className="tracking-[.14em]">
-                    Operator console
+                    {t("admin.gate.eyebrow")}
                 </MicroLabel>
                 <h1 className="mt-3 mb-1.5 font-display text-2xl font-bold tracking-tight text-fg">
-                    Admin access
+                    {t("admin.gate.title")}
                 </h1>
                 <p className="mb-6 text-sm leading-relaxed text-muted">
-                    Enter the workshop{" "}
-                    <span className="font-mono text-fg">ADMIN_TOKEN</span>. Dev
-                    default is{" "}
-                    <span className="font-mono text-fg">sitcon-admin</span>.
+                    {t("admin.gate.body.before")}
+                    <span className="font-mono text-fg">ADMIN_TOKEN</span>
+                    {t("admin.gate.body.after")}
+                    <span className="font-mono text-fg">sitcon-admin</span>
+                    {t("admin.gate.body.suffix")}
                 </p>
                 <input
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && submit()}
-                    placeholder="ADMIN_TOKEN"
+                    placeholder={t("admin.gate.placeholder")}
                     type="password"
                     className="mb-3.5 w-full rounded-md border border-border bg-bg px-3.5 py-3 font-mono text-sm text-fg outline-none placeholder:text-muted/60 focus:border-accent"
                 />
@@ -151,7 +154,7 @@ function TokenGate({ onToken }: { onToken: (t: string) => void }) {
                     onClick={submit}
                     className="w-full py-3 text-[15px]"
                 >
-                    Enter console →
+                    {t("admin.gate.enter")}
                 </PrimaryButton>
             </div>
         </div>
@@ -165,6 +168,7 @@ function Console({
     token: string;
     onBadToken: () => void;
 }) {
+    const { t } = useI18n();
     const service = getAdminService();
     service.setToken(token);
     const [section, setSection] = useState<SectionId>("import");
@@ -204,8 +208,8 @@ function Console({
               : false;
     const lockReason = (gate: (typeof SECTIONS)[number]["gate"]) =>
         gate === "imported"
-            ? "Import a validated dataset first (Phase 0)."
-            : "Run Generate & verify first.";
+            ? t("admin.lock.imported")
+            : t("admin.lock.generated");
     const current = SECTIONS.find((s) => s.id === section);
     const active: SectionId =
         current && isLocked(current.gate) ? "import" : section;
@@ -216,7 +220,7 @@ function Console({
             <div className="flex min-h-0 flex-1">
                 <nav className="flex w-52 shrink-0 flex-col gap-0.5 border-r border-border bg-panel/40 p-3">
                     <MicroLabel className="mb-2 border-b border-border/60 px-2 pb-2.5">
-                        Console
+                        {t("admin.nav.console")}
                     </MicroLabel>
                     {SECTIONS.map((s) => {
                         const locked = isLocked(s.gate);
@@ -237,7 +241,9 @@ function Console({
                                 }`}
                             >
                                 <NavIcon>{ICONS[s.id]}</NavIcon>
-                                <span className="flex-1">{s.name}</span>
+                                <span className="flex-1">
+                                    {t(`admin.section.${s.id}`)}
+                                </span>
                                 {locked && <span aria-hidden>🔒</span>}
                             </button>
                         );

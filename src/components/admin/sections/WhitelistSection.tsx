@@ -14,6 +14,7 @@ import {
     SegmentedControl,
 } from "#/components/workshop/ui";
 import { Toggle, WarnBanner } from "../ui";
+import { useI18n } from "#/lib/i18n/context";
 import { teamLabel } from "#/lib/workshop/constants";
 import { parseWhitelistCsv } from "#/lib/workshop/whitelist-csv";
 import type {
@@ -24,6 +25,7 @@ import type {
 type Source = "paste" | "file";
 
 export function WhitelistSection({ service }: { service: AdminService }) {
+    const { t } = useI18n();
     const [enabled, setEnabled] = useState(false);
     const [entries, setEntries] = useState<WhitelistEntry[]>([]);
     const [loaded, setLoaded] = useState(false);
@@ -42,10 +44,12 @@ export function WhitelistSection({ service }: { service: AdminService }) {
             setLoaded(true);
         } catch (e) {
             setError(
-                e instanceof Error ? e.message : "Could not load the roster"
+                e instanceof Error
+                    ? e.message
+                    : t("admin.roster.loadFailed")
             );
         }
-    }, [service]);
+    }, [service, t]);
 
     useEffect(() => {
         load();
@@ -69,7 +73,9 @@ export function WhitelistSection({ service }: { service: AdminService }) {
             setEntries(next.entries);
             return true;
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Save failed");
+            setError(
+                e instanceof Error ? e.message : t("admin.roster.saveFailed")
+            );
             return false;
         } finally {
             setBusy(false);
@@ -82,7 +88,7 @@ export function WhitelistSection({ service }: { service: AdminService }) {
         const ok = await save({ enabled: true, entries: parsed.entries });
         if (ok) {
             setNote(
-                `Saved ${parsed.entries.length} names — enforcement is on.`
+                t("admin.roster.saved", { count: parsed.entries.length })
             );
             setCsv("");
         }
@@ -108,33 +114,38 @@ export function WhitelistSection({ service }: { service: AdminService }) {
     return (
         <div className="space-y-5">
             <div>
-                <MicroLabel accent>Roster</MicroLabel>
+                <MicroLabel accent>{t("admin.roster.eyebrow")}</MicroLabel>
                 <h2 className="mt-1 font-display text-xl font-semibold text-fg">
-                    Team / name whitelist
+                    {t("admin.roster.title")}
                 </h2>
                 <p className="text-sm text-muted">
-                    Upload the camp roster to lock joining to known squad
-                    members. When enforcement is on, a student whose{" "}
-                    <span className="font-mono text-fg">小隊 + 姓名</span>{" "}
-                    isn&apos;t on the list is turned away at the join screen.
+                    {t("admin.roster.body.before")}
+                    <span className="font-mono text-fg">
+                        {t("admin.roster.body.format")}
+                    </span>
+                    {t("admin.roster.body.after")}
                 </p>
             </div>
 
             <Island className="space-y-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <MicroLabel>Enforcement</MicroLabel>
+                        <MicroLabel>{t("admin.roster.enforcement")}</MicroLabel>
                         <p className="mt-1 text-sm text-muted">
                             {enabled
-                                ? `On — ${entries.length} names may join.`
+                                ? t("admin.roster.enforcement.on", {
+                                      count: entries.length,
+                                  })
                                 : entries.length > 0
-                                  ? `Off — anyone may join (${entries.length} names saved).`
-                                  : "Off — no roster uploaded; anyone may join."}
+                                  ? t("admin.roster.enforcement.offSaved", {
+                                        count: entries.length,
+                                    })
+                                  : t("admin.roster.enforcement.off")}
                         </p>
                     </div>
                     <Toggle
                         checked={enabled}
-                        ariaLabel="Toggle whitelist enforcement"
+                        ariaLabel={t("admin.roster.enforcementAria")}
                         onChange={(v) => save({ enabled: v, entries })}
                     />
                 </div>
@@ -142,17 +153,17 @@ export function WhitelistSection({ service }: { service: AdminService }) {
 
             <Island className="space-y-4 p-5">
                 <div className="flex items-center gap-2">
-                    <MicroLabel>Source</MicroLabel>
+                    <MicroLabel>{t("admin.roster.source")}</MicroLabel>
                     <SegmentedControl<Source>
                         value={source}
                         onChange={setSource}
                         options={[
-                            { value: "paste", label: "Paste CSV" },
-                            { value: "file", label: "Upload" },
+                            { value: "paste", label: t("admin.roster.paste") },
+                            { value: "file", label: t("admin.roster.upload") },
                         ]}
                     />
                     <span className="font-mono text-[11px] text-muted">
-                        columns: team,name
+                        {t("admin.roster.columns")}
                     </span>
                 </div>
 
@@ -174,26 +185,31 @@ export function WhitelistSection({ service }: { service: AdminService }) {
                             onChange={(e) => onFile(e.target.files?.[0])}
                         />
                         {csv
-                            ? `${csv.split(/\r?\n/).length} lines loaded — click to replace`
-                            : "Choose roster.csv"}
+                            ? t("admin.roster.linesLoaded", {
+                                  count: csv.split(/\r?\n/).length,
+                              })
+                            : t("admin.roster.chooseFile")}
                     </label>
                 )}
 
                 {parsed && (
                     <div className="rounded-md border border-border bg-bg p-3">
                         <div className="flex items-center justify-between">
-                            <MicroLabel>Preview</MicroLabel>
+                            <MicroLabel>{t("admin.roster.preview")}</MicroLabel>
                             <span className="font-mono text-[11px] text-muted">
-                                {parsed.entries.length} names
+                                {t("admin.roster.preview.names", {
+                                    count: parsed.entries.length,
+                                })}
                                 {parsed.dropped > 0
-                                    ? ` · ${parsed.dropped} rows skipped`
+                                    ? t("admin.roster.preview.skipped", {
+                                          count: parsed.dropped,
+                                      })
                                     : ""}
                             </span>
                         </div>
                         {parsed.entries.length === 0 ? (
                             <p className="mt-2 text-[11px] text-warning">
-                                No valid rows — each line needs a squad (1–10 or
-                                第N小隊) and a name.
+                                {t("admin.roster.preview.noValid")}
                             </p>
                         ) : (
                             <div className="mt-2 max-h-40 overflow-auto font-mono text-[11px] text-muted">
@@ -227,17 +243,19 @@ export function WhitelistSection({ service }: { service: AdminService }) {
                             busy || !parsed || parsed.entries.length === 0
                         }
                     >
-                        {busy ? "Saving…" : "Save whitelist"}
+                        {busy
+                            ? t("admin.roster.saving")
+                            : t("admin.roster.save")}
                     </PrimaryButton>
                 </div>
             </Island>
 
             <Island className="space-y-3 p-5">
                 <div className="flex items-baseline justify-between">
-                    <MicroLabel>Current roster</MicroLabel>
+                    <MicroLabel>{t("admin.roster.currentRoster")}</MicroLabel>
                     <div className="flex items-center gap-3">
                         <span className="font-mono text-[11px] text-muted">
-                            {entries.length} names
+                            {t("admin.roster.names", { count: entries.length })}
                         </span>
                         {entries.length > 0 && (
                             <GhostButton
@@ -248,7 +266,7 @@ export function WhitelistSection({ service }: { service: AdminService }) {
                                 disabled={busy}
                                 className="border-warning/40 text-warning hover:text-warning"
                             >
-                                Clear
+                                {t("admin.roster.clear")}
                             </GhostButton>
                         )}
                     </div>
@@ -256,12 +274,11 @@ export function WhitelistSection({ service }: { service: AdminService }) {
 
                 {!loaded ? (
                     <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
-                        Loading…
+                        {t("admin.roster.loading")}
                     </p>
                 ) : entries.length === 0 ? (
                     <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
-                        No roster saved — upload a team,name CSV above to limit
-                        joining.
+                        {t("admin.roster.noRoster")}
                     </p>
                 ) : (
                     <div className="grid gap-3 sm:grid-cols-2">

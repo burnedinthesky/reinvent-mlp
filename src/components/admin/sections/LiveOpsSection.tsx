@@ -5,19 +5,10 @@
 import { useState } from "react";
 import { GhostButton, Island, MicroLabel } from "#/components/workshop/ui";
 import { Toggle } from "../ui";
+import { useI18n } from "#/lib/i18n/context";
 import { PHASES, REVEAL_META } from "#/lib/workshop/admin-service";
 import type { AdminService, RevealKey } from "#/lib/workshop/admin-service";
 import type { Phase, ServerState } from "#/lib/workshop/types";
-
-const PHASE_NAMES: Record<Phase, string> = {
-    P1: "Guess the Class",
-    P2: "Circles",
-    P3: "Fog",
-    P4: "Bots",
-    P5: "Neuron",
-    P6: "Playground",
-    NONE: "Nothing",
-};
 
 export function LiveOpsSection({
     service,
@@ -28,9 +19,13 @@ export function LiveOpsSection({
     state: ServerState | null;
     onState: (s: ServerState) => void;
 }) {
+    const { t } = useI18n();
     const [minutes, setMinutes] = useState(10);
 
-    if (!state) return <div className="text-sm text-muted">Loading…</div>;
+    if (!state)
+        return (
+            <div className="text-sm text-muted">{t("admin.scores.loading")}</div>
+        );
 
     const setPhase = (p: Phase) => service.setPhase(p).then(onState);
     const setSelfSelect = (v: boolean) =>
@@ -49,15 +44,15 @@ export function LiveOpsSection({
 
             <Island className="p-5">
                 <div className="flex items-center justify-between gap-3">
-                    <MicroLabel>Current phase</MicroLabel>
+                    <MicroLabel>{t("admin.liveops.currentPhase")}</MicroLabel>
                     <a
                         href="/?preview"
                         target="_blank"
                         rel="noreferrer"
-                        title="Demo the student UI locally without changing the room phase"
+                        title={t("admin.liveops.previewTitle")}
                         className="font-mono text-[11px] text-muted underline decoration-border underline-offset-4 transition-colors hover:text-accent"
                     >
-                        Open student preview ↗
+                        {t("admin.liveops.preview")}
                     </a>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -82,7 +77,7 @@ export function LiveOpsSection({
                                             : "text-muted/70"
                                     }
                                 >
-                                    {PHASE_NAMES[p]}
+                                    {t(`admin.liveops.phase.${p}`)}
                                 </span>
                             </button>
                         );
@@ -91,36 +86,32 @@ export function LiveOpsSection({
                 <div className="mt-4 flex items-center justify-between gap-4 border-t border-border/60 pt-4">
                     <div>
                         <div className="font-mono text-sm text-fg">
-                            Students self-select phase
+                            {t("admin.liveops.selfSelect")}
                         </div>
                         <div className="text-xs text-muted">
-                            On: students roam freely. Off: every device is
-                            locked to the phase above.
+                            {t("admin.liveops.selfSelect.body")}
                         </div>
                     </div>
                     <Toggle
                         checked={state.selfSelect}
                         onChange={setSelfSelect}
-                        ariaLabel="Students self-select phase"
+                        ariaLabel={t("admin.liveops.selfSelect")}
                     />
                 </div>
             </Island>
 
             {state.selfSelect ? (
                 <Island className="p-5">
-                    <MicroLabel>Reveal flags</MicroLabel>
+                    <MicroLabel>{t("admin.liveops.reveals")}</MicroLabel>
                     <p className="mt-1 text-xs text-muted">
-                        Self-select is on — each student controls their own
-                        reveals from their phase menu. Turn self-select off to
-                        drive reveals for the whole room.
+                        {t("admin.liveops.reveals.selfSelectOn")}
                     </p>
                 </Island>
             ) : (
                 <Island className="p-5">
-                    <MicroLabel>Reveal flags</MicroLabel>
+                    <MicroLabel>{t("admin.liveops.reveals")}</MicroLabel>
                     <p className="mt-1 mb-3 text-xs text-muted">
-                        Each flip animates on every student device at once.
-                        Labels never ship until their flag is on.
+                        {t("admin.liveops.reveals.body")}
                     </p>
                     <div className="divide-y divide-border/60">
                         {REVEAL_META.map((r) => (
@@ -138,7 +129,7 @@ export function LiveOpsSection({
                                         </span>
                                     </div>
                                     <div className="mt-1 text-xs text-muted">
-                                        {r.caption}
+                                        {t(`reveals.${r.key}.caption`)}
                                     </div>
                                 </div>
                                 <Toggle
@@ -155,11 +146,15 @@ export function LiveOpsSection({
             <Island className="p-5">
                 <div className="flex items-center justify-between">
                     <div>
-                        <MicroLabel>Countdown</MicroLabel>
+                        <MicroLabel>{t("admin.liveops.countdown")}</MicroLabel>
                         <p className="mt-1 text-xs text-muted">
                             {state.deadline
-                                ? `Ends ${new Date(state.deadline).toLocaleTimeString()}`
-                                : "No timer armed — submissions stay open."}
+                                ? t("admin.liveops.countdown.ends", {
+                                      time: new Date(
+                                          state.deadline
+                                      ).toLocaleTimeString(),
+                                  })
+                                : t("admin.liveops.countdown.none")}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -168,11 +163,11 @@ export function LiveOpsSection({
                             min={1}
                             value={minutes}
                             onChange={(e) => setMinutes(Number(e.target.value))}
-                            aria-label="Countdown minutes"
+                            aria-label={t("admin.liveops.countdown.minutes")}
                             className="w-20 rounded-md border border-border bg-bg px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent"
                         />
                         <span className="font-mono text-xs text-muted">
-                            min
+                            {t("admin.liveops.countdown.min")}
                         </span>
                         <GhostButton
                             bordered
@@ -183,13 +178,13 @@ export function LiveOpsSection({
                                     : "pointer-events-none opacity-40"
                             }
                         >
-                            Arm
+                            {t("admin.liveops.countdown.arm")}
                         </GhostButton>
                         <GhostButton
                             onClick={clearDeadline}
                             className="text-warning hover:text-warning"
                         >
-                            Clear
+                            {t("admin.liveops.countdown.clear")}
                         </GhostButton>
                     </div>
                 </div>
@@ -199,16 +194,14 @@ export function LiveOpsSection({
 }
 
 function Head() {
+    const { t } = useI18n();
     return (
         <div>
-            <MicroLabel accent>Live Ops</MicroLabel>
+            <MicroLabel accent>{t("admin.liveops.eyebrow")}</MicroLabel>
             <h2 className="mt-1 font-display text-xl font-semibold text-fg">
-                Run the room
+                {t("admin.liveops.title")}
             </h2>
-            <p className="text-sm text-muted">
-                The single source of truth every phone polls. Drive phases,
-                reveals, and the clock from here.
-            </p>
+            <p className="text-sm text-muted">{t("admin.liveops.body")}</p>
         </div>
     );
 }

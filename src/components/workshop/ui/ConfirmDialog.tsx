@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { GhostButton, PrimaryButton } from "./controls";
 import { Island } from "./islands";
 import { MicroLabel } from "./typography";
+import { useI18n } from "#/lib/i18n/context";
 
 export interface ConfirmOptions {
     title: string;
@@ -25,6 +26,7 @@ export function ConfirmDialog({
     options: ConfirmOptions;
     onResolve: (ok: boolean) => void;
 }) {
+    const { t } = useI18n();
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") onResolve(false);
@@ -49,7 +51,7 @@ export function ConfirmDialog({
                 >
                     <div className="border-b border-border px-5 py-4">
                         <MicroLabel accent>
-                            {options.eyebrow ?? "確認"}
+                            {options.eyebrow ?? t("common.confirm")}
                         </MicroLabel>
                         <h3 className="mt-1 font-display text-lg font-semibold text-fg">
                             {options.title}
@@ -60,10 +62,10 @@ export function ConfirmDialog({
                     </div>
                     <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
                         <GhostButton bordered onClick={() => onResolve(false)}>
-                            {options.cancelLabel ?? "取消"}
+                            {options.cancelLabel ?? t("common.cancel")}
                         </GhostButton>
                         <PrimaryButton onClick={() => onResolve(true)}>
-                            {options.confirmLabel ?? "確認"}
+                            {options.confirmLabel ?? t("common.confirm")}
                         </PrimaryButton>
                     </div>
                 </div>

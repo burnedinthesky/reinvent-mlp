@@ -18,6 +18,7 @@ import {
     SegmentedControl,
 } from "#/components/workshop/ui";
 import { WarnBanner } from "../ui";
+import { useI18n } from "#/lib/i18n/context";
 import {
     parseHeaderRow,
     positionalMap,
@@ -43,6 +44,7 @@ export function ImportSection({
     onDataset: (d: DatasetInfo | null) => void;
     onState: (s: ServerState) => void;
 }) {
+    const { t } = useI18n();
     const [source, setSource] = useState<ImportSource>("paste");
     const [csv, setCsv] = useState("");
     const [busy, setBusy] = useState(false);
@@ -83,7 +85,9 @@ export function ImportSection({
             onDataset(await service.getDataset());
             await loadRows();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Import failed");
+            setError(
+                e instanceof Error ? e.message : t("admin.import.failed")
+            );
         } finally {
             setBusy(false);
         }
@@ -106,7 +110,9 @@ export function ImportSection({
             onDataset(await service.getDataset());
             await loadRows();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Clear failed");
+            setError(
+                e instanceof Error ? e.message : t("admin.import.clearFailed")
+            );
         } finally {
             setClearing(false);
             setConfirmClear(false);
@@ -124,7 +130,9 @@ export function ImportSection({
             onState(await service.getState()); // phase/reveals reverted to defaults
             await loadRows();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Reset failed");
+            setError(
+                e instanceof Error ? e.message : t("admin.import.resetFailed")
+            );
         } finally {
             setResetting(false);
             setConfirmReset(false);
@@ -137,15 +145,12 @@ export function ImportSection({
         <div className="space-y-5">
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <MicroLabel accent>Setup</MicroLabel>
+                    <MicroLabel accent>{t("admin.import.eyebrow")}</MicroLabel>
                     <h2 className="mt-1 font-display text-xl font-semibold text-fg">
-                        Phase 0 — Load the survey
+                        {t("admin.import.title")}
                     </h2>
                     <p className="text-sm text-muted">
-                        Every other section stays locked until a validated
-                        dataset is imported. Export the Google Sheet to CSV and
-                        paste or upload it — the server cleans ugly rows and
-                        derives the training data.
+                        {t("admin.import.body")}
                     </p>
                 </div>
                 <GhostButton
@@ -153,20 +158,26 @@ export function ImportSection({
                     onClick={() => setShowHelp(true)}
                     className="shrink-0"
                 >
-                    ? Required columns
+                    {t("admin.import.requiredColumns")}
                 </GhostButton>
             </div>
 
             <Island className="space-y-4 p-5">
                 <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <MicroLabel>Source</MicroLabel>
+                        <MicroLabel>{t("admin.import.source")}</MicroLabel>
                         <SegmentedControl<ImportSource>
                             value={source}
                             onChange={setSource}
                             options={[
-                                { value: "paste", label: "Paste CSV" },
-                                { value: "file", label: "Upload" },
+                                {
+                                    value: "paste",
+                                    label: t("admin.import.paste"),
+                                },
+                                {
+                                    value: "file",
+                                    label: t("admin.import.upload"),
+                                },
                             ]}
                         />
                     </div>
@@ -190,8 +201,10 @@ export function ImportSection({
                             onChange={(e) => onFile(e.target.files?.[0])}
                         />
                         {csv
-                            ? `${csv.split(/\r?\n/).length} lines loaded — click to replace`
-                            : "Choose responses.csv"}
+                            ? t("admin.import.linesLoaded", {
+                                  count: csv.split(/\r?\n/).length,
+                              })
+                            : t("admin.import.chooseFile")}
                     </label>
                 )}
                 {check && (
@@ -202,7 +215,9 @@ export function ImportSection({
 
                 <div className="flex justify-end">
                     <PrimaryButton onClick={run} disabled={!canImport}>
-                        {busy ? "Cleaning…" : "Import & clean"}
+                        {busy
+                            ? t("admin.import.running")
+                            : t("admin.import.run")}
                     </PrimaryButton>
                 </div>
             </Island>
@@ -212,12 +227,10 @@ export function ImportSection({
             <DataTable rows={rows} onRefresh={loadRows} />
 
             <Island className="space-y-3 border-warning/30 p-5">
-                <MicroLabel>Danger zone</MicroLabel>
+                <MicroLabel>{t("admin.import.danger")}</MicroLabel>
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <p className="max-w-md text-sm text-muted">
-                        Clear the imported dataset plus all submissions and fog
-                        queries, returning the console to Phase 0. Student
-                        accounts and phase state are kept.
+                        {t("admin.import.clear.body")}
                     </p>
                     {confirmClear ? (
                         <div className="flex shrink-0 items-center gap-2">
@@ -226,7 +239,7 @@ export function ImportSection({
                                 onClick={() => setConfirmClear(false)}
                                 disabled={clearing}
                             >
-                                Cancel
+                                {t("common.cancel")}
                             </GhostButton>
                             <button
                                 type="button"
@@ -235,8 +248,8 @@ export function ImportSection({
                                 className="rounded-md border border-warning bg-warning/15 px-3 py-1.5 text-sm font-medium text-warning transition-colors hover:bg-warning/25 disabled:opacity-50"
                             >
                                 {clearing
-                                    ? "Clearing…"
-                                    : "Confirm — clear all data"}
+                                    ? t("admin.import.clear.clearing")
+                                    : t("admin.import.clear.confirm")}
                             </button>
                         </div>
                     ) : (
@@ -245,7 +258,7 @@ export function ImportSection({
                             onClick={() => setConfirmClear(true)}
                             className="shrink-0 border-warning/40 text-warning hover:text-warning"
                         >
-                            Clear all data
+                            {t("admin.import.clear.button")}
                         </GhostButton>
                     )}
                 </div>
@@ -254,12 +267,9 @@ export function ImportSection({
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <p className="max-w-md text-sm text-muted">
                             <span className="font-medium text-warning">
-                                Reset DB — full factory reset.
+                                {t("admin.import.reset.lead")}
                             </span>{" "}
-                            Deletes every student account, all submissions and
-                            fog queries, all datasets, and resets phase/reveal
-                            state. The room returns to a fresh boot (Phase 0,
-                            all reveals off). This cannot be undone.
+                            {t("admin.import.reset.body")}
                         </p>
                         {confirmReset ? (
                             <div className="flex shrink-0 items-center gap-2">
@@ -268,7 +278,7 @@ export function ImportSection({
                                     onClick={() => setConfirmReset(false)}
                                     disabled={resetting}
                                 >
-                                    Cancel
+                                    {t("common.cancel")}
                                 </GhostButton>
                                 <button
                                     type="button"
@@ -277,8 +287,8 @@ export function ImportSection({
                                     className="rounded-md border border-warning bg-warning px-3 py-1.5 text-sm font-semibold text-bg transition-colors hover:bg-warning/85 disabled:opacity-50"
                                 >
                                     {resetting
-                                        ? "Resetting…"
-                                        : "Confirm — reset the entire DB"}
+                                        ? t("admin.import.reset.resetting")
+                                        : t("admin.import.reset.confirm")}
                                 </button>
                             </div>
                         ) : (
@@ -287,7 +297,7 @@ export function ImportSection({
                                 onClick={() => setConfirmReset(true)}
                                 className="shrink-0 border-warning/60 text-warning hover:text-warning"
                             >
-                                Reset DB
+                                {t("admin.import.reset.button")}
                             </GhostButton>
                         )}
                     </div>
@@ -308,6 +318,7 @@ function ColumnCheck({
     check: HeaderValidation;
     headers: string[];
 }) {
+    const { t } = useI18n();
     if (check.format === "positional") {
         return <PositionalCheck check={check} headers={headers} />;
     }
@@ -321,11 +332,13 @@ function ColumnCheck({
     return (
         <div className="rounded-md border border-border bg-bg p-3">
             <div className="flex items-center justify-between">
-                <MicroLabel>Column check</MicroLabel>
+                <MicroLabel>{t("admin.import.columnCheck")}</MicroLabel>
                 <span
                     className={`font-mono text-[11px] ${check.ok ? "text-positive" : "text-warning"}`}
                 >
-                    {check.ok ? "all present ✓" : "incomplete"}
+                    {check.ok
+                        ? t("admin.import.allPresent")
+                        : t("admin.import.incomplete")}
                 </span>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
@@ -345,9 +358,9 @@ function ColumnCheck({
             {check.ambiguous.length > 0 && (
                 <div className="mt-3">
                     <WarnBanner>
-                        Ambiguous header(s) for {check.ambiguous.join(", ")} —
-                        two columns contain the codename. Rename so only one
-                        column maps to each.
+                        {t("admin.import.ambiguous", {
+                            cols: check.ambiguous.join(", "),
+                        })}
                     </WarnBanner>
                 </div>
             )}
@@ -364,24 +377,30 @@ function PositionalCheck({
     check: HeaderValidation;
     headers: string[];
 }) {
+    const { t } = useI18n();
     const { feats, bedtimeHeader, offset } = positionalMap(headers);
     const clip = (h: string | undefined) =>
         !h ? "—" : h.length > 30 ? h.slice(0, 29) + "…" : h;
     return (
         <div className="rounded-md border border-border bg-bg p-3">
             <div className="flex items-center justify-between">
-                <MicroLabel>Column check</MicroLabel>
+                <MicroLabel>{t("admin.import.columnCheck")}</MicroLabel>
                 <span
                     className={`font-mono text-[11px] ${check.ok ? "text-positive" : "text-warning"}`}
                 >
-                    {check.ok ? "Google Form detected ✓" : "too few columns"}
+                    {check.ok
+                        ? t("admin.import.formDetected")
+                        : t("admin.import.tooFewColumns")}
                 </span>
             </div>
             <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                No codenames found — mapping the {COLS.length} features by{" "}
-                <span className="text-fg">column order</span> (Timestamp
-                skipped). The label is derived from the average-bedtime column
-                via a class-median split; columns past it are ignored.
+                {t("admin.import.positional.body.before", {
+                    count: COLS.length,
+                })}
+                <span className="text-fg">
+                    {t("admin.import.positional.order")}
+                </span>
+                {t("admin.import.positional.body.after")}
             </p>
             {check.ok ? (
                 <div className="mt-2 space-y-0.5">
@@ -395,7 +414,7 @@ function PositionalCheck({
                     ))}
                     <MapRow
                         col={offset + COLS.length + 1}
-                        code="label (bedtime split)"
+                        code={t("admin.import.positional.label")}
                         header={clip(bedtimeHeader ?? undefined)}
                         accent
                     />
@@ -403,9 +422,9 @@ function PositionalCheck({
             ) : (
                 <div className="mt-3">
                     <WarnBanner>
-                        A raw Google-Form export needs Timestamp + the{" "}
-                        {COLS.length} features + the average-bedtime column, in
-                        question order.
+                        {t("admin.import.positional.warn", {
+                            count: COLS.length,
+                        })}
                     </WarnBanner>
                 </div>
             )}
@@ -424,9 +443,12 @@ function MapRow({
     header: string;
     accent?: boolean;
 }) {
+    const { t } = useI18n();
     return (
         <div className="grid grid-cols-[3rem_10rem_1fr] items-center gap-2 font-mono text-[11px]">
-            <span className="text-muted/50">col {col}</span>
+            <span className="text-muted/50">
+                {t("admin.import.col", { col })}
+            </span>
             <span className={accent ? "text-accent3" : "text-muted"}>
                 {code}
             </span>
@@ -446,26 +468,27 @@ function DataTable({
     rows: RealRow[];
     onRefresh: () => void;
 }) {
-    const owlName = "owl";
-    const earlyName = "early";
+    const { t } = useI18n();
+    const owlName = t("admin.generate.owl");
+    const earlyName = t("admin.generate.early");
 
     return (
         <Island className="space-y-3 p-5">
             <div className="flex items-baseline justify-between">
-                <MicroLabel>Current data</MicroLabel>
+                <MicroLabel>{t("admin.import.currentData")}</MicroLabel>
                 <div className="flex items-center gap-3">
                     <span className="font-mono text-[11px] text-muted">
-                        {rows.length} rows
+                        {t("admin.import.rows", { count: rows.length })}
                     </span>
                     <GhostButton onClick={onRefresh} className="text-[11px]">
-                        ↻ Refresh
+                        {t("admin.import.refresh")}
                     </GhostButton>
                 </div>
             </div>
 
             {rows.length === 0 ? (
                 <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
-                    No rows loaded yet — import a survey CSV above.
+                    {t("admin.import.noRows")}
                 </p>
             ) : (
                 <div className="max-h-[360px] overflow-auto rounded-md border border-border">
@@ -474,7 +497,7 @@ function DataTable({
                             <tr>
                                 <th className="px-2.5 py-2 font-medium">#</th>
                                 <th className="px-2.5 py-2 font-medium">
-                                    Pseudo
+                                    {t("admin.import.table.pseudo")}
                                 </th>
                                 {COLS.map((k) => (
                                     <th
@@ -486,7 +509,7 @@ function DataTable({
                                     </th>
                                 ))}
                                 <th className="px-2.5 py-2 font-medium">
-                                    Label
+                                    {t("admin.import.table.label")}
                                 </th>
                             </tr>
                         </thead>
@@ -539,17 +562,21 @@ function DataTable({
 /* ---------- balance report ---------- */
 
 function BalanceReportView({ report }: { report: BalanceReport }) {
-    const owlName = "owl";
-    const earlyName = "early";
+    const { t } = useI18n();
+    const owlName = t("admin.generate.owl");
+    const earlyName = t("admin.generate.early");
     const rMax = Math.max(0.01, ...report.perFeature.map((f) => Math.abs(f.r)));
 
     return (
         <Island className="space-y-4 p-5">
             <div className="flex items-baseline justify-between">
-                <MicroLabel>Balance report</MicroLabel>
+                <MicroLabel>{t("admin.import.balance")}</MicroLabel>
                 <span className="font-mono text-[11px] text-muted">
-                    {report.total} labelled · {report.droppedRows} dropped ·{" "}
-                    {report.fixedCells} cells fixed
+                    {t("admin.import.balance.summary", {
+                        total: report.total,
+                        dropped: report.droppedRows,
+                        fixed: report.fixedCells,
+                    })}
                 </span>
             </div>
 
@@ -572,19 +599,21 @@ function BalanceReportView({ report }: { report: BalanceReport }) {
 
             <div>
                 <MicroLabel>
-                    Per-feature signal (mean by class · point-biserial r)
+                    {t("admin.import.balance.perFeature")}
                 </MicroLabel>
                 <div className="mt-2 grid grid-cols-[9rem_1fr_3.5rem] items-center gap-3 border-b border-border/60 pb-1.5 font-mono text-[10px] uppercase tracking-wide text-muted/60">
-                    <span>Feature</span>
+                    <span>{t("admin.import.balance.feature")}</span>
                     <span className="flex items-center gap-1.5">
                         <span className="text-accent2">{earlyName}</span>
                         <span className="text-muted/40 normal-case">→</span>
                         <span className="text-accent3">{owlName}</span>
-                        <span className="ml-1 text-muted/40">mean</span>
+                        <span className="ml-1 text-muted/40">
+                            {t("admin.import.balance.mean")}
+                        </span>
                     </span>
                     <span
                         className="text-right"
-                        title="point-biserial correlation"
+                        title={t("admin.import.balance.rTitle")}
                     >
                         r
                     </span>
