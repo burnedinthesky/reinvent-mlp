@@ -1,0 +1,97 @@
+/* ============================================================
+   Reinventing the MLP — global styles + design-system tokens.
+   Neon-lime on near-black, per design-system.md (single dark theme).
+   Keep the @theme color values in sync with C in src/lib/workshop/theme.ts
+   (enforced by src/lib/workshop/__tests__/theme-sync.test.ts).
+   ============================================================ */
+
+@import "tailwindcss";
+
+@theme {
+    /* colors — design-system §3.1 (dark/canonical values) */
+    --color-bg: #0a0a0a;
+    --color-fg: #ffffff;
+    --color-muted: #9e9e9e;
+    --color-panel: #171717;
+    --color-border: #585858;
+    --color-accent: #d6fb00;
+    --color-accent-fg: #0a0a0a;
+    --color-accent2: #34e3ed;
+    --color-accent3: #7235ff;
+    --color-positive: #4ade80;
+    --color-warning: #fbbf24;
+
+    /* fonts */
+    --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:
+        "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --font-display: "Space Grotesk", "IBM Plex Sans", sans-serif;
+
+    /* motion */
+    --animate-pop-in: pop-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    --animate-slide-up: slide-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+    @keyframes pop-in {
+        from {
+            transform: scale(0.97);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    @keyframes slide-up {
+        from {
+            transform: translateY(8px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+}
+
+@layer base {
+    :root {
+        color-scheme: dark;
+    }
+
+    html,
+    body,
+    #app {
+        height: 100%;
+    }
+
+    body {
+        @apply bg-bg font-sans text-fg antialiased;
+    }
+
+    input,
+    button,
+    select {
+        font: inherit;
+    }
+
+    button,
+    select {
+        cursor: pointer;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border-radius: 6px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+}

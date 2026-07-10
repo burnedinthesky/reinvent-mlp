@@ -1,0 +1,85 @@
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { Toaster } from "sonner";
+
+import appCss from "../styles.css?url";
+
+export const Route = createRootRoute({
+    head: () => ({
+        meta: [
+            {
+                charSet: "utf-8",
+            },
+            {
+                name: "viewport",
+                content: "width=device-width, initial-scale=1",
+            },
+            {
+                title: "Reinventing the MLP — SITCON Camp",
+            },
+            {
+                name: "theme-color",
+                content: "#0A0A0A",
+            },
+        ],
+        links: [
+            { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+            { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+            { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+            { rel: "manifest", href: "/manifest.json" },
+            { rel: "preconnect", href: "https://fonts.googleapis.com" },
+            {
+                rel: "preconnect",
+                href: "https://fonts.gstatic.com",
+                crossOrigin: "anonymous",
+            },
+            {
+                rel: "stylesheet",
+                href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
+            },
+            {
+                rel: "stylesheet",
+                href: appCss,
+            },
+        ],
+    }),
+    shellComponent: RootDocument,
+});
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en">
+            <head>
+                <HeadContent />
+            </head>
+            <body>
+                {children}
+                <Toaster
+                    theme="dark"
+                    position="bottom-center"
+                    toastOptions={{
+                        style: {
+                            background: "var(--color-panel)",
+                            border: "1px solid var(--color-border)",
+                            color: "var(--color-fg)",
+                            fontFamily: "inherit",
+                        },
+                    }}
+                />
+                <TanStackDevtools
+                    config={{
+                        position: "bottom-right",
+                    }}
+                    plugins={[
+                        {
+                            name: "Tanstack Router",
+                            render: <TanStackRouterDevtoolsPanel />,
+                        },
+                    ]}
+                />
+                <Scripts />
+            </body>
+        </html>
+    );
+}

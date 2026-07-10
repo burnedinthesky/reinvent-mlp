@@ -1,0 +1,8 @@
+allowBuilds:
+  '@prisma/engines': true
+  better-sqlite3: true
+  prisma: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - h3@2.0.1-rc.23
+  - nitro-nightly@3.0.1-20260706-120058-bf34aed3

@@ -1,0 +1,115 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// App identity (§1). A self-chosen nickname + bearer token; structurally
+/// unlinkable to any survey row. `code4` is the 4-digit rejoin recovery code.
+model Student {
+  id        String   @id @default(cuid())
+  nickname  String   @unique
+  token     String   @unique
+  code4     String
+  createdAt DateTime @default(now())
+
+  submissions Submission[]
+  fogQueries  FogQuery[]
+  grants      AttemptGrant[]
+
+  @@index([token])
+}
+
+/// Operator-granted extra attempts for one student on one phase (admin Scores
+/// section). `bonus` is added on top of the base per-phase cap when the server
+/// enforces the attempt limit. One row per (student, phase); absent = 0 bonus.
+model AttemptGrant {
+  id        String @id @default(cuid())
+  studentId String
+  phase     String
+  bonus     Int    @default(0)
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, phase])
+}
+
+/// Every scored submission, storing its raw payload (§3.1) for replay/analysis.
+/// `phase` is a workshop Phase string ('P1'|'P2'|'P3'|'P4'|'P5') plus the
+/// synthetic phase 'API' for the uni-tier query channel. `score` is the primary
+/// board value (acc_hidden for ACC phases, best_loss for LOSS phases); `score2`
+/// is the secondary (e.g. acc_visible). `flag` carries a leaderboard marker
+/// ('⌨️' uni-tier) when present.
+model Submission {
+  id        String   @id @default(cuid())
+  studentId String
+  phase     String
+  payload   String
+  score     Float
+  score2    Float?
+  flag      String?
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, phase])
+  @@index([phase])
+}
+
+/// One P3 fog probe. Feeds /fog/mine reload-recovery and the Act-3 comet-trail
+/// replay. `round` is '1d' | '2d'; `seq` is the per-student order within a round.
+model FogQuery {
+  id        String   @id @default(cuid())
+  studentId String
+  round     String
+  w         Float
+  b         Float
+  loss      Float
+  seq       Int
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, round])
+  @@index([round])
+}
+
+/// Single source of truth for GET /state — one row per key ('phase', 'deadline',
+/// reveal flags). Seeded with defaults on first boot.
+model AppState {
+  key   String @id
+  value String
+}
+
+/// The active scoring dataset. Written by /admin/import or /admin/generate, read
+/// at scoring time. `active` marks the single live bundle; older rows are kept
+/// for provenance. All large blobs are JSON strings (SQLite has no native JSON).
+model Dataset {
+  id        String   @id @default(cuid())
+  active    Boolean  @default(false)
+  label     String
+  realRows  String   @map("real48")
+  points    String
+  config    String
+  meta      String?
+  source    String
+  createdAt DateTime @default(now())
+
+  @@index([active])
+}
