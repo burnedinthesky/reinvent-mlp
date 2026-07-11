@@ -26,7 +26,10 @@ export function DataSettingsModal({
 
     useEffect(() => {
         if (!open) return;
-        service.getDataset().then(setDataset).catch(() => setDataset(null));
+        service
+            .getDataset()
+            .then(setDataset)
+            .catch(() => setDataset(null));
     }, [open, service]);
 
     useEffect(() => {
@@ -52,7 +55,8 @@ export function DataSettingsModal({
             aria-label={t("serverless.settings.title")}
             className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm sm:p-6"
             onMouseDown={(event) => {
-                if (event.target === event.currentTarget && hasDataset) onClose();
+                if (event.target === event.currentTarget && hasDataset)
+                    onClose();
             }}
         >
             <div className="flex h-[min(92dvh,900px)] w-[min(1180px,96vw)] flex-col overflow-hidden rounded-lg border border-border bg-bg shadow-2xl motion-safe:animate-pop-in">
@@ -106,7 +110,10 @@ export function DataSettingsModal({
                 <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
                     <div className="mx-auto max-w-5xl">
                         {tab === "generate" ? (
-                            <GenerateSection service={service} onDataset={onDataset} />
+                            <GenerateSection
+                                service={service}
+                                onDataset={onDataset}
+                            />
                         ) : (
                             <ImportSection
                                 service={service}
@@ -121,7 +128,10 @@ export function DataSettingsModal({
                     <span className="min-w-0 truncate text-xs text-muted">
                         {dataset
                             ? t("serverless.settings.active", {
-                                  count: dataset.counts.real + dataset.counts.reveal + dataset.counts.hidden,
+                                  count:
+                                      dataset.counts.real +
+                                      dataset.counts.reveal +
+                                      dataset.counts.hidden,
                               })
                             : t("serverless.settings.none")}
                     </span>
@@ -133,4 +143,3 @@ export function DataSettingsModal({
         </div>
     );
 }
-

@@ -243,7 +243,9 @@ export function P3Line() {
             }));
             startFlash(res.wrong);
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : t("p3.toast.rejected"));
+            toast.error(
+                e instanceof Error ? e.message : t("p3.toast.rejected")
+            );
         } finally {
             setSubmitting(false);
         }

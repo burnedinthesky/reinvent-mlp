@@ -21,52 +21,54 @@ import tailwindcss from "@tailwindcss/vite";
 const P7_DATASET_IDS = ["mnist", "fashion", "kmnist", "cifar10"];
 
 function verifyP7Datasets(): void {
-  const root = dirname(fileURLToPath(import.meta.url));
-  const dir = join(root, "public", "datasets");
-  const problems: string[] = [];
-  for (const id of P7_DATASET_IDS) {
-    const jsonPath = join(dir, `${id}.json`);
-    const binPath = join(dir, `${id}.bin.gzip`);
-    if (!existsSync(jsonPath) || !existsSync(binPath)) {
-      problems.push(`${id}: missing ${id}.json and/or ${id}.bin.gzip`);
-      continue;
+    const root = dirname(fileURLToPath(import.meta.url));
+    const dir = join(root, "public", "datasets");
+    const problems: string[] = [];
+    for (const id of P7_DATASET_IDS) {
+        const jsonPath = join(dir, `${id}.json`);
+        const binPath = join(dir, `${id}.bin.gzip`);
+        if (!existsSync(jsonPath) || !existsSync(binPath)) {
+            problems.push(`${id}: missing ${id}.json and/or ${id}.bin.gzip`);
+            continue;
+        }
+        if (statSync(binPath).size === 0) {
+            problems.push(`${id}: ${id}.bin.gzip is empty`);
+            continue;
+        }
+        let manifest: { trainN?: number; valN?: number };
+        try {
+            manifest = JSON.parse(readFileSync(jsonPath, "utf8"));
+        } catch (e) {
+            problems.push(
+                `${id}: ${id}.json is not valid JSON (${(e as Error).message})`
+            );
+            continue;
+        }
+        if (manifest.trainN !== 2000 || manifest.valN !== 200) {
+            problems.push(
+                `${id}: wrong split (trainN=${manifest.trainN}, valN=${manifest.valN}; expected 2000 + 200)`
+            );
+        }
     }
-    if (statSync(binPath).size === 0) {
-      problems.push(`${id}: ${id}.bin.gzip is empty`);
-      continue;
+    if (problems.length) {
+        throw new Error(
+            `P7 datasets not pre-built (expected 2000 train + 200 validation). Run: node scripts/build-datasets.mjs\n  - ${problems.join("\n  - ")}`
+        );
     }
-    let manifest: { trainN?: number; valN?: number };
-    try {
-      manifest = JSON.parse(readFileSync(jsonPath, "utf8"));
-    } catch (e) {
-      problems.push(`${id}: ${id}.json is not valid JSON (${(e as Error).message})`);
-      continue;
-    }
-    if (manifest.trainN !== 2000 || manifest.valN !== 200) {
-      problems.push(
-        `${id}: wrong split (trainN=${manifest.trainN}, valN=${manifest.valN}; expected 2000 + 200)`,
-      );
-    }
-  }
-  if (problems.length) {
-    throw new Error(
-      `P7 datasets not pre-built (expected 2000 train + 200 validation). Run: node scripts/build-datasets.mjs\n  - ${problems.join("\n  - ")}`,
-    );
-  }
 }
 
 function p7DatasetGuard(): Plugin {
-  return {
-    name: "p7-dataset-guard",
-    // `pnpm build` — fail the production build if assets are absent/wrong.
-    buildStart() {
-      verifyP7Datasets();
-    },
-    // `pnpm dev` — fail server startup with the same actionable error.
-    configureServer() {
-      verifyP7Datasets();
-    },
-  };
+    return {
+        name: "p7-dataset-guard",
+        // `pnpm build` — fail the production build if assets are absent/wrong.
+        buildStart() {
+            verifyP7Datasets();
+        },
+        // `pnpm dev` — fail server startup with the same actionable error.
+        configureServer() {
+            verifyP7Datasets();
+        },
+    };
 }
 
 function envFlag(value: string | undefined): boolean {

@@ -124,7 +124,8 @@ export const phases123En: Record<keyof typeof phases123Zh, string> = {
     "p2.preview.label": "Preview",
     "p2.preview.aria": "Preview predictions",
     "p2.preview.titleLine": "Recolor by the linear model's predictions",
-    "p2.preview.titleLasso": "Recolor by the combined majority-vote predictions",
+    "p2.preview.titleLasso":
+        "Recolor by the combined majority-vote predictions",
     "p2.clear": "Clear",
     "p2.toast.rejected": "Submission rejected",
 

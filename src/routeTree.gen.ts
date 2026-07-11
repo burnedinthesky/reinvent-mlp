@@ -8,160 +8,170 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as RoomRouteImport } from './routes/room'
-import { Route as MlpPlaygroundRouteImport } from './routes/mlp-playground'
-import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiQueryRouteImport } from './routes/api/query'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as RoomRouteImport } from "./routes/room";
+import { Route as MlpPlaygroundRouteImport } from "./routes/mlp-playground";
+import { Route as LeaderboardRouteImport } from "./routes/leaderboard";
+import { Route as AdminRouteImport } from "./routes/admin";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as ApiQueryRouteImport } from "./routes/api/query";
 
 const RoomRoute = RoomRouteImport.update({
-  id: '/room',
-  path: '/room',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/room",
+    path: "/room",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const MlpPlaygroundRoute = MlpPlaygroundRouteImport.update({
-  id: '/mlp-playground',
-  path: '/mlp-playground',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/mlp-playground",
+    path: "/mlp-playground",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const LeaderboardRoute = LeaderboardRouteImport.update({
-  id: '/leaderboard',
-  path: '/leaderboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/leaderboard",
+    path: "/leaderboard",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/admin",
+    path: "/admin",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/",
+    path: "/",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const ApiQueryRoute = ApiQueryRouteImport.update({
-  id: '/api/query',
-  path: '/api/query',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/api/query",
+    path: "/api/query",
+    getParentRoute: () => rootRouteImport,
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/leaderboard': typeof LeaderboardRoute
-  '/mlp-playground': typeof MlpPlaygroundRoute
-  '/room': typeof RoomRoute
-  '/api/query': typeof ApiQueryRoute
+    "/": typeof IndexRoute;
+    "/admin": typeof AdminRoute;
+    "/leaderboard": typeof LeaderboardRoute;
+    "/mlp-playground": typeof MlpPlaygroundRoute;
+    "/room": typeof RoomRoute;
+    "/api/query": typeof ApiQueryRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/leaderboard': typeof LeaderboardRoute
-  '/mlp-playground': typeof MlpPlaygroundRoute
-  '/room': typeof RoomRoute
-  '/api/query': typeof ApiQueryRoute
+    "/": typeof IndexRoute;
+    "/admin": typeof AdminRoute;
+    "/leaderboard": typeof LeaderboardRoute;
+    "/mlp-playground": typeof MlpPlaygroundRoute;
+    "/room": typeof RoomRoute;
+    "/api/query": typeof ApiQueryRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/leaderboard': typeof LeaderboardRoute
-  '/mlp-playground': typeof MlpPlaygroundRoute
-  '/room': typeof RoomRoute
-  '/api/query': typeof ApiQueryRoute
+    __root__: typeof rootRouteImport;
+    "/": typeof IndexRoute;
+    "/admin": typeof AdminRoute;
+    "/leaderboard": typeof LeaderboardRoute;
+    "/mlp-playground": typeof MlpPlaygroundRoute;
+    "/room": typeof RoomRoute;
+    "/api/query": typeof ApiQueryRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    '/' | '/admin' | '/leaderboard' | '/mlp-playground' | '/room' | '/api/query'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    '/' | '/admin' | '/leaderboard' | '/mlp-playground' | '/room' | '/api/query'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/leaderboard'
-    | '/mlp-playground'
-    | '/room'
-    | '/api/query'
-  fileRoutesById: FileRoutesById
+    fileRoutesByFullPath: FileRoutesByFullPath;
+    fullPaths:
+        | "/"
+        | "/admin"
+        | "/leaderboard"
+        | "/mlp-playground"
+        | "/room"
+        | "/api/query";
+    fileRoutesByTo: FileRoutesByTo;
+    to:
+        | "/"
+        | "/admin"
+        | "/leaderboard"
+        | "/mlp-playground"
+        | "/room"
+        | "/api/query";
+    id:
+        | "__root__"
+        | "/"
+        | "/admin"
+        | "/leaderboard"
+        | "/mlp-playground"
+        | "/room"
+        | "/api/query";
+    fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
-  LeaderboardRoute: typeof LeaderboardRoute
-  MlpPlaygroundRoute: typeof MlpPlaygroundRoute
-  RoomRoute: typeof RoomRoute
-  ApiQueryRoute: typeof ApiQueryRoute
+    IndexRoute: typeof IndexRoute;
+    AdminRoute: typeof AdminRoute;
+    LeaderboardRoute: typeof LeaderboardRoute;
+    MlpPlaygroundRoute: typeof MlpPlaygroundRoute;
+    RoomRoute: typeof RoomRoute;
+    ApiQueryRoute: typeof ApiQueryRoute;
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/room': {
-      id: '/room'
-      path: '/room'
-      fullPath: '/room'
-      preLoaderRoute: typeof RoomRouteImport
-      parentRoute: typeof rootRouteImport
+declare module "@tanstack/react-router" {
+    interface FileRoutesByPath {
+        "/room": {
+            id: "/room";
+            path: "/room";
+            fullPath: "/room";
+            preLoaderRoute: typeof RoomRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/mlp-playground": {
+            id: "/mlp-playground";
+            path: "/mlp-playground";
+            fullPath: "/mlp-playground";
+            preLoaderRoute: typeof MlpPlaygroundRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/leaderboard": {
+            id: "/leaderboard";
+            path: "/leaderboard";
+            fullPath: "/leaderboard";
+            preLoaderRoute: typeof LeaderboardRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/admin": {
+            id: "/admin";
+            path: "/admin";
+            fullPath: "/admin";
+            preLoaderRoute: typeof AdminRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/": {
+            id: "/";
+            path: "/";
+            fullPath: "/";
+            preLoaderRoute: typeof IndexRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/api/query": {
+            id: "/api/query";
+            path: "/api/query";
+            fullPath: "/api/query";
+            preLoaderRoute: typeof ApiQueryRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
     }
-    '/mlp-playground': {
-      id: '/mlp-playground'
-      path: '/mlp-playground'
-      fullPath: '/mlp-playground'
-      preLoaderRoute: typeof MlpPlaygroundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leaderboard': {
-      id: '/leaderboard'
-      path: '/leaderboard'
-      fullPath: '/leaderboard'
-      preLoaderRoute: typeof LeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/query': {
-      id: '/api/query'
-      path: '/api/query'
-      fullPath: '/api/query'
-      preLoaderRoute: typeof ApiQueryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
-  LeaderboardRoute: LeaderboardRoute,
-  MlpPlaygroundRoute: MlpPlaygroundRoute,
-  RoomRoute: RoomRoute,
-  ApiQueryRoute: ApiQueryRoute,
-}
+    IndexRoute: IndexRoute,
+    AdminRoute: AdminRoute,
+    LeaderboardRoute: LeaderboardRoute,
+    MlpPlaygroundRoute: MlpPlaygroundRoute,
+    RoomRoute: RoomRoute,
+    ApiQueryRoute: ApiQueryRoute,
+};
 export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+    ._addFileChildren(rootRouteChildren)
+    ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
+    interface Register {
+        ssr: true;
+        router: Awaited<ReturnType<typeof getRouter>>;
+    }
 }

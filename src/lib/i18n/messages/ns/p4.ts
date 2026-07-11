@@ -16,7 +16,8 @@ export const p4Zh = {
     "p4.surface.mlp_b": "送出 · 山脈 · 困難",
     "p4.surface.desc.bowl":
         "你可以在碗形練習場自由練習；執行不會計分，也不會送出。",
-    "p4.surface.desc.submit": "送出後會評分{stage}。丘陵和山脈共用 {cap} 次機會。",
+    "p4.surface.desc.submit":
+        "送出後會評分{stage}。丘陵和山脈共用 {cap} 次機會。",
 
     // variable legend
     "p4.vars.legendLabel": "變數 · 點擊可重新命名",

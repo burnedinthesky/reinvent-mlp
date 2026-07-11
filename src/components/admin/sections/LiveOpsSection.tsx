@@ -24,7 +24,9 @@ export function LiveOpsSection({
 
     if (!state)
         return (
-            <div className="text-sm text-muted">{t("admin.scores.loading")}</div>
+            <div className="text-sm text-muted">
+                {t("admin.scores.loading")}
+            </div>
         );
 
     const setPhase = (p: Phase) => service.setPhase(p).then(onState);

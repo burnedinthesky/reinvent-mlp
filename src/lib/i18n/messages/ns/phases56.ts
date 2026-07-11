@@ -89,7 +89,8 @@ export const phases56Zh = {
     "playground.stats.steps": "步數",
     "playground.stats.trainLoss": "訓練 loss",
     "playground.net.title": "網路 — 點擊神經元查看它畫出的內容",
-    "playground.view.hiddenLine": "隱藏層 {layer} · 神經元 {n} — 已在資料上畫出它的線",
+    "playground.view.hiddenLine":
+        "隱藏層 {layer} · 神經元 {n} — 已在資料上畫出它的線",
     "playground.view.hidden": "隱藏層 {layer} · 神經元 {n}",
     "playground.view.output": "輸出 · P(夜貓)",
     "playground.backToOutput": "← 回到輸出",

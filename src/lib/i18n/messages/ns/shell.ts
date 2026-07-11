@@ -106,7 +106,8 @@ export const shellEn: Record<keyof typeof shellZh, string> = {
     "common.submit": "Submit",
     "common.close": "Close",
 
-    "ui.toolbar.dragAria": "Drag the toolbar; double-click to reset its position",
+    "ui.toolbar.dragAria":
+        "Drag the toolbar; double-click to reset its position",
 
     "lang.zh": "中文",
     "lang.en": "English",

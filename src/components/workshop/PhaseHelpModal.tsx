@@ -329,8 +329,7 @@ function P5Help({ t, deep }: { t: TranslateFn; deep: boolean }) {
                         </strong>
                         {t("help.p5.deep.body.2")}
                         <strong>{t("help.p5.deep.gd")}</strong>
-                        {t("help.p5.deep.body.3")}{" "}
-                        <Kbd>Space</Kbd>
+                        {t("help.p5.deep.body.3")} <Kbd>Space</Kbd>
                         {t("help.p5.deep.body.4")}
                     </p>
                 </div>

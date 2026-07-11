@@ -85,9 +85,7 @@ export function ImportSection({
             onDataset(await service.getDataset());
             await loadRows();
         } catch (e) {
-            setError(
-                e instanceof Error ? e.message : t("admin.import.failed")
-            );
+            setError(e instanceof Error ? e.message : t("admin.import.failed"));
         } finally {
             setBusy(false);
         }
@@ -598,9 +596,7 @@ function BalanceReportView({ report }: { report: BalanceReport }) {
             </div>
 
             <div>
-                <MicroLabel>
-                    {t("admin.import.balance.perFeature")}
-                </MicroLabel>
+                <MicroLabel>{t("admin.import.balance.perFeature")}</MicroLabel>
                 <div className="mt-2 grid grid-cols-[9rem_1fr_3.5rem] items-center gap-3 border-b border-border/60 pb-1.5 font-mono text-[10px] uppercase tracking-wide text-muted/60">
                     <span>{t("admin.import.balance.feature")}</span>
                     <span className="flex items-center gap-1.5">

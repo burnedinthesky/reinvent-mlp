@@ -82,14 +82,17 @@ export const helpZh = {
     "help.p4.loop.logic": "邏輯",
     "help.p4.loop.logicParen": "（如果），以及",
     "help.p4.loop.action": "動作",
-    "help.p4.loop.actionParen": "（移動 / 跳躍 / 步長 ×）。迴圈跑一輪就是一個 epoch， 會重複",
+    "help.p4.loop.actionParen":
+        "（移動 / 跳躍 / 步長 ×）。迴圈跑一輪就是一個 epoch， 會重複",
     "help.p4.loop.times": "×100",
     "help.p4.loop.body.2": "。每次讀數只問",
     "help.p4.loop.oneStudent": "一位同學",
-    "help.p4.loop.body.3": "，所以會刻意帶有雜訊。點膠囊可以選值，拖曳 ⠿ 可以重新排序。",
+    "help.p4.loop.body.3":
+        "，所以會刻意帶有雜訊。點膠囊可以選值，拖曳 ⠿ 可以重新排序。",
     "help.p4.sense.title": "觀察與掃描：你的感官",
     "help.p4.sense.observe": "觀察",
-    "help.p4.sense.body.1": "會取得一次讀數（在原地，或不移動、看一步外的位置），並存進",
+    "help.p4.sense.body.1":
+        "會取得一次讀數（在原地，或不移動、看一步外的位置），並存進",
     "help.p4.sense.varSlot": "你選的變數格",
     "help.p4.sense.body.2": "，沒有其他隱藏記憶。",
     "help.p4.sense.scan": "掃描",
@@ -103,7 +106,8 @@ export const helpZh = {
     "help.p4.step.stepLen": "步長",
     "help.p4.step.body.1": "就是 ML 裡的",
     "help.p4.step.lr": "學習率",
-    "help.p4.step.body.2": "：它決定一次移動走多遠， 也決定觀察 / 掃描會探多遠。",
+    "help.p4.step.body.2":
+        "：它決定一次移動走多遠， 也決定觀察 / 掃描會探多遠。",
     "help.p4.step.stepMul": "步長 ×",
     "help.p4.step.body.3":
         "可以在執行中縮小或放大它 （學習率排程）。方向是絕對羅盤方向（↑↗→↘↓↙←↖），不會相對轉向。訓練時可以觀察 loss 對 epoch 曲線和變數面板。",
@@ -111,7 +115,8 @@ export const helpZh = {
     "help.p4.practice.body.1": "從側欄選一個地形。",
     "help.p4.practice.body.2": "可以自由探索， 模擬不計分也不送出。",
     "help.p4.practice.hillsParen": "（中等）與",
-    "help.p4.practice.mtnParen": "（困難）是兩個隱藏的計分地形， 各有自己的排行榜；送出會消耗共用的 {cap} 次機會。最後",
+    "help.p4.practice.mtnParen":
+        "（困難）是兩個隱藏的計分地形， 各有自己的排行榜；送出會消耗共用的 {cap} 次機會。最後",
     "help.p4.practice.judge": "裁判",
     "help.p4.practice.body.3": "會問",
     "help.p4.practice.whole": "全班",
@@ -128,7 +133,8 @@ export const helpZh = {
     "help.p5.deep.title": "往更深處",
     "help.p5.deep.body.1": "切到",
     "help.p5.deep.stage2": "② 深層",
-    "help.p5.deep.body.2": "後，可以加入隱藏層 （1–2 層 × 每層 1–6 顆神經元），改用",
+    "help.p5.deep.body.2":
+        "後，可以加入隱藏層 （1–2 層 × 每層 1–6 顆神經元），改用",
     "help.p5.deep.gd": "梯度下降訓練",
     "help.p5.deep.body.3": "， 不再手動調參。按 ▶（或",
     "help.p5.deep.body.4":
@@ -301,8 +307,7 @@ export const helpEn: Record<keyof typeof helpZh, string> = {
     "help.p5.deep.body.2":
         ", you can add hidden layers (1–2 layers × 1–6 neurons each) and switch to",
     "help.p5.deep.gd": "gradient-descent training",
-    "help.p5.deep.body.3":
-        ", no more manual tuning. Press ▶ (or",
+    "help.p5.deep.body.3": ", no more manual tuning. Press ▶ (or",
     "help.p5.deep.body.4":
         ") to start training while watching loss and accuracy. Click any neuron to see the surface it draws. Both stages submit to the same accuracy leaderboard.",
     "help.p5.score.title": "Scoring",

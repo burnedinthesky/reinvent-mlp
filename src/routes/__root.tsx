@@ -38,8 +38,15 @@ export const Route = createRootRoute({
         ],
         links: [
             { rel: "icon", href: `${publicBase}favicon.ico`, sizes: "48x48" },
-            { rel: "icon", href: `${publicBase}favicon.svg`, type: "image/svg+xml" },
-            { rel: "apple-touch-icon", href: `${publicBase}apple-touch-icon.png` },
+            {
+                rel: "icon",
+                href: `${publicBase}favicon.svg`,
+                type: "image/svg+xml",
+            },
+            {
+                rel: "apple-touch-icon",
+                href: `${publicBase}apple-touch-icon.png`,
+            },
             { rel: "manifest", href: `${publicBase}manifest.json` },
             { rel: "preconnect", href: "https://fonts.googleapis.com" },
             {

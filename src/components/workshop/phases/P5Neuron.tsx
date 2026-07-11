@@ -379,9 +379,7 @@ export function P5Neuron() {
                 disabled={left <= 0 || submitting}
                 className="flex-1 py-2.5 font-display font-bold"
             >
-                {left <= 0
-                    ? t("p5.submit.noAttempts")
-                    : t("p5.submit.grade")}
+                {left <= 0 ? t("p5.submit.noAttempts") : t("p5.submit.grade")}
             </PrimaryButton>
             <span className="font-mono text-[11px] tracking-wide text-muted uppercase">
                 {String(s.attempt).padStart(2, "0")}/{cap}

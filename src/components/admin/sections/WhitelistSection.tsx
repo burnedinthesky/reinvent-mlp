@@ -44,9 +44,7 @@ export function WhitelistSection({ service }: { service: AdminService }) {
             setLoaded(true);
         } catch (e) {
             setError(
-                e instanceof Error
-                    ? e.message
-                    : t("admin.roster.loadFailed")
+                e instanceof Error ? e.message : t("admin.roster.loadFailed")
             );
         }
     }, [service, t]);
@@ -87,9 +85,7 @@ export function WhitelistSection({ service }: { service: AdminService }) {
         // uploading a roster turns enforcement on — that's the point of the upload.
         const ok = await save({ enabled: true, entries: parsed.entries });
         if (ok) {
-            setNote(
-                t("admin.roster.saved", { count: parsed.entries.length })
-            );
+            setNote(t("admin.roster.saved", { count: parsed.entries.length }));
             setCsv("");
         }
     };

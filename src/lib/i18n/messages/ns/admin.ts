@@ -123,7 +123,8 @@ export const adminZh = {
     "admin.import.balance": "平衡報告",
     "admin.import.balance.summary":
         "{total} 筆已標記 · {dropped} 筆已丟棄 · {fixed} 個儲存格已修正",
-    "admin.import.balance.perFeature": "各特徵訊號（依類別的平均值 · 點二列相關 r）",
+    "admin.import.balance.perFeature":
+        "各特徵訊號（依類別的平均值 · 點二列相關 r）",
     "admin.import.balance.feature": "特徵",
     "admin.import.balance.mean": "平均",
     "admin.import.balance.rTitle": "點二列相關",
@@ -131,21 +132,17 @@ export const adminZh = {
     // ImportHelpModal
     "admin.help.eyebrow": "CSV 契約",
     "admin.help.title": "必要欄位",
-    "admin.help.body.before":
-        "將問卷試算表匯出成 CSV。每一題的標頭必須",
+    "admin.help.body.before": "將問卷試算表匯出成 CSV。每一題的標頭必須",
     "admin.help.body.contain": "含有其代號",
-    "admin.help.body.caseInsensitive":
-        "（不分大小寫——像 ",
+    "admin.help.body.caseInsensitive": "（不分大小寫——像 ",
     "admin.help.body.exampleHeader": "螢幕使用 SCREEN_AVG(分/日)",
     "admin.help.body.mapsTo": " 這樣的標頭會對應到 ",
-    "admin.help.body.after":
-        "）。全部九個特徵欄位",
+    "admin.help.body.after": "）。全部九個特徵欄位",
     "admin.help.body.and": "以及",
     "admin.help.body.labelCol":
         "你選定的標籤欄都是必要的；若有兩個標頭對應同一代號則會被拒絕。",
     "admin.help.raw.lead": "原始 Google 表單匯出？",
-    "admin.help.raw.body.before":
-        "直接貼上——找不到代號時，改以",
+    "admin.help.raw.body.before": "直接貼上——找不到代號時，改以",
     "admin.help.raw.body.byOrder": "題目順序",
     "admin.help.raw.body.after":
         "對應欄位（Timestamp，接著這 9 個特徵，再來是平均就寢時間題）。類別標籤依中位數切分，從該就寢時間欄推導；其後的任何欄位都會被忽略。無需重新命名或手動建立標籤欄。",
@@ -235,7 +232,8 @@ export const adminZh = {
     "admin.scores.col.grant": "授予",
     "admin.scores.grantedTitle": "已授予 +{bonus}",
     "admin.scores.dump.title": "完整匯出",
-    "admin.scores.dump.body": "伺服器狀態 + 使用中資料集 + 統計資料，以 JSON 呈現。",
+    "admin.scores.dump.body":
+        "伺服器狀態 + 使用中資料集 + 統計資料，以 JSON 呈現。",
     "admin.scores.dump.download": "下載 JSON",
     "admin.scores.dump.preparing": "準備中…",
 
@@ -272,7 +270,8 @@ export const adminZh = {
     "admin.roster.names": "{count} 個名字",
     "admin.roster.clear": "清除",
     "admin.roster.loading": "載入中…",
-    "admin.roster.noRoster": "尚未儲存名冊——於上方上傳 team,name CSV 以限制加入。",
+    "admin.roster.noRoster":
+        "尚未儲存名冊——於上方上傳 team,name CSV 以限制加入。",
 
     // ui.tsx — Verdict
     "admin.ui.pass": "通過",
@@ -439,7 +438,8 @@ export const adminEn: Record<keyof typeof adminZh, string> = {
     "admin.meaning.LATE_SHOWER": "Days per week showering late at night.",
     "admin.meaning.EARLY_WAKE": "Days per week waking up early.",
     "admin.meaning.GAME_HRS": "Hours per week gaming.",
-    "admin.meaning.DND_START": "When phone Do-Not-Disturb kicks in at night (banded).",
+    "admin.meaning.DND_START":
+        "When phone Do-Not-Disturb kicks in at night (banded).",
     "admin.meaning.BREAKFAST": "Days per week eating breakfast.",
 
     "admin.liveops.eyebrow": "Live Ops",

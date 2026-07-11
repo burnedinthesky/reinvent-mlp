@@ -18,4 +18,3 @@ describe("LocalDataService", () => {
         expect(bowl.grid).toBe(landscape.grid);
     });
 });
-

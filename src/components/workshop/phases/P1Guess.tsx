@@ -125,7 +125,9 @@ export function P1Guess() {
             }));
             setHistView(-1);
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : t("p1.toast.rejected"));
+            toast.error(
+                e instanceof Error ? e.message : t("p1.toast.rejected")
+            );
         } finally {
             setSubmitting(false);
         }

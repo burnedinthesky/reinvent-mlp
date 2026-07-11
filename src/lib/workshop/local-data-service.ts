@@ -1,6 +1,10 @@
 import type { BowlGrid, DataBundle, WorkshopDataService } from "./data-service";
 import { PHASE_CAPS, FOG_BUDGET } from "./constants";
-import { LossLandscape, lossColor as lossColorFn, trainFrameOf } from "./lossgrid";
+import {
+    LossLandscape,
+    lossColor as lossColorFn,
+    trainFrameOf,
+} from "./lossgrid";
 import { NetEngine } from "./mlp";
 import type { Activation, NetArchConfig } from "./mlp";
 import {
@@ -99,7 +103,9 @@ export class LocalDataService implements WorkshopDataService {
         return { ...PHASE_CAPS };
     }
 
-    async submitGuess(labels: Partial<Record<string, ClassLabel>>): Promise<GuessResult> {
+    async submitGuess(
+        labels: Partial<Record<string, ClassLabel>>
+    ): Promise<GuessResult> {
         const store = await this.store();
         this.attempts.guess += 1;
         return { acc: scoreGuess(store, labels), attempt: this.attempts.guess };
@@ -114,10 +120,17 @@ export class LocalDataService implements WorkshopDataService {
     async submitLine(sub: LineSubmission): Promise<LineResult> {
         const store = await this.store();
         this.attempts.line += 1;
-        return { ...scoreLine(store, sub.w, sub.b), attempt: this.attempts.line };
+        return {
+            ...scoreLine(store, sub.w, sub.b),
+            attempt: this.attempts.line,
+        };
     }
 
-    async fogQuery(round: FogRound, w: number, b: number): Promise<FogQueryResult> {
+    async fogQuery(
+        round: FogRound,
+        w: number,
+        b: number
+    ): Promise<FogQueryResult> {
         const store = await this.store();
         const used = ++this.fogUsed[round];
         const bUsed = round === "1d" ? store.land.bStar : b;
@@ -151,7 +164,11 @@ export class LocalDataService implements WorkshopDataService {
 
     async botSandbox(prog: BotProgram): Promise<StageRunResult> {
         const store = await this.store();
-        return scoreStage(bowlStage(store.land), prog, 1200 + this.attempts.bot++);
+        return scoreStage(
+            bowlStage(store.land),
+            prog,
+            1200 + this.attempts.bot++
+        );
     }
 
     bowlGrid(): BowlGrid {
@@ -190,11 +207,27 @@ export class LocalDataService implements WorkshopDataService {
         points?: DataPoint[]
     ): NetEngine {
         const active = points ?? this.points;
-        return new NetEngine(trainFrameOf(active, axes[0], axes[1]), active, arch, "tanh", lr);
+        return new NetEngine(
+            trainFrameOf(active, axes[0], axes[1]),
+            active,
+            arch,
+            "tanh",
+            lr
+        );
     }
 
-    createNetEngine(arch: NetArchConfig, act: Activation, lr: number): NetEngine {
-        return new NetEngine(trainFrameOf(this.points), this.points, arch, act, lr);
+    createNetEngine(
+        arch: NetArchConfig,
+        act: Activation,
+        lr: number
+    ): NetEngine {
+        return new NetEngine(
+            trainFrameOf(this.points),
+            this.points,
+            arch,
+            act,
+            lr
+        );
     }
 
     lossColor(loss: number, alpha?: number): string {

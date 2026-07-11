@@ -13,12 +13,7 @@ import {
     useState,
 } from "react";
 
-import {
-    DEFAULT_LOCALE,
-    LOCALE_COOKIE,
-    htmlLang,
-    type Locale,
-} from "./index";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, htmlLang, type Locale } from "./index";
 import { MESSAGES, type MessageKey } from "./messages/index";
 
 /** Fill {name} placeholders in a template from `vars`. Missing vars are left as
@@ -77,8 +72,7 @@ export function I18nProvider({
     const t = useCallback<TranslateFn>(
         (key, vars) => {
             const table = MESSAGES[locale] ?? MESSAGES[DEFAULT_LOCALE];
-            const template =
-                table[key] ?? MESSAGES[DEFAULT_LOCALE][key] ?? key;
+            const template = table[key] ?? MESSAGES[DEFAULT_LOCALE][key] ?? key;
             return interpolate(template, vars);
         },
         [locale]

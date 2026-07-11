@@ -44,11 +44,7 @@ function PhaseView() {
     }
 }
 
-export function AppShell({
-    onOpenSettings,
-}: {
-    onOpenSettings?: () => void;
-}) {
+export function AppShell({ onOpenSettings }: { onOpenSettings?: () => void }) {
     const { store, ready } = useWorkshop();
     const fullBleed =
         store.phase === "P2" ||

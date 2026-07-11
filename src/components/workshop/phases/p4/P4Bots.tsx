@@ -570,10 +570,7 @@ export function P4Bots() {
                             label={t("p4.hud.read")}
                             value={fr.read.toFixed(3)}
                         />
-                        <Hud
-                            label={t("p4.hud.lr")}
-                            value={fr.lr.toFixed(2)}
-                        />
+                        <Hud label={t("p4.hud.lr")} value={fr.lr.toFixed(2)} />
                         {done && activeResult && (
                             <Hud
                                 label={t("p4.hud.judge")}

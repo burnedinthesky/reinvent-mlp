@@ -705,7 +705,9 @@ export function P2Circles() {
                 lossVisible: res.loss_visible ?? null,
             });
         } catch (e) {
-            toast.error(e instanceof Error ? e.message : t("p2.toast.rejected"));
+            toast.error(
+                e instanceof Error ? e.message : t("p2.toast.rejected")
+            );
         } finally {
             setSubmitting(false);
         }

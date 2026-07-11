@@ -25,10 +25,7 @@ import {
 } from "./features";
 import { LossLandscape } from "./lossgrid";
 import { createRng } from "./rng";
-import {
-    cleanRealCsv,
-    generateSynth,
-} from "./server/dataset-io";
+import { cleanRealCsv, generateSynth } from "./server/dataset-io";
 import { buildRiggedRange } from "./terrain";
 import type { StageTerrain } from "./terrain";
 import type {
@@ -66,7 +63,8 @@ export interface LocalDatasetRecord {
 function requestValue<T>(request: IDBRequest<T>): Promise<T> {
     return new Promise((resolve, reject) => {
         request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error ?? new Error("IndexedDB failed"));
+        request.onerror = () =>
+            reject(request.error ?? new Error("IndexedDB failed"));
     });
 }
 
@@ -74,7 +72,8 @@ async function openDb(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = () => {
         const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+        if (!db.objectStoreNames.contains(STORE_NAME))
+            db.createObjectStore(STORE_NAME);
     };
     return requestValue(request);
 }
@@ -83,9 +82,15 @@ async function readRecord(): Promise<LocalDatasetRecord | null> {
     const db = await openDb();
     try {
         const value = await requestValue(
-            db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(ACTIVE_KEY)
+            db
+                .transaction(STORE_NAME, "readonly")
+                .objectStore(STORE_NAME)
+                .get(ACTIVE_KEY)
         );
-        if (!value || (value as LocalDatasetRecord).schemaVersion !== RECORD_VERSION)
+        if (
+            !value ||
+            (value as LocalDatasetRecord).schemaVersion !== RECORD_VERSION
+        )
             return null;
         return value as LocalDatasetRecord;
     } finally {
@@ -100,8 +105,10 @@ async function writeRecord(record: LocalDatasetRecord): Promise<void> {
         tx.objectStore(STORE_NAME).put(record, ACTIVE_KEY);
         await new Promise<void>((resolve, reject) => {
             tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(tx.error ?? new Error("IndexedDB write failed"));
-            tx.onabort = () => reject(tx.error ?? new Error("IndexedDB write aborted"));
+            tx.onerror = () =>
+                reject(tx.error ?? new Error("IndexedDB write failed"));
+            tx.onabort = () =>
+                reject(tx.error ?? new Error("IndexedDB write aborted"));
         });
     } finally {
         db.close();
@@ -115,7 +122,8 @@ async function deleteRecord(): Promise<void> {
         tx.objectStore(STORE_NAME).delete(ACTIVE_KEY);
         await new Promise<void>((resolve, reject) => {
             tx.oncomplete = () => resolve();
-            tx.onerror = () => reject(tx.error ?? new Error("IndexedDB delete failed"));
+            tx.onerror = () =>
+                reject(tx.error ?? new Error("IndexedDB delete failed"));
         });
     } finally {
         db.close();
@@ -142,7 +150,11 @@ function buildSyntheticRows(seed: number): RealRow[] {
         const [zx, zy] = WEDGE_MEANS[arch];
         const owl = cls === 1;
         const feats: FeatureValues = {
-            SCREEN_AVG: clampRound(360 + (zx + rng.gauss() * 0.55) * 150, 0, 960),
+            SCREEN_AVG: clampRound(
+                360 + (zx + rng.gauss() * 0.55) * 150,
+                0,
+                960
+            ),
             CAFFEINE: clampRound(4.2 + (zy + rng.gauss() * 0.55) * 2.9, 0, 24),
             LATE7: clampRound((owl ? 4.6 : 1.4) + rng.gauss() * 1.4, 0, 7),
             SNACK_DAYS: clampRound((owl ? 3.4 : 1.1) + rng.gauss() * 1.4, 0, 7),
@@ -152,7 +164,13 @@ function buildSyntheticRows(seed: number): RealRow[] {
             DND_START: clampRound((owl ? 3.1 : 1.1) + rng.gauss() * 0.95, 0, 4),
             BREAKFAST: clampRound((owl ? 2.6 : 4.8) + rng.gauss() * 1.4, 0, 7),
         };
-        return { id: `r${index}`, pseudo: pseudos[index], feats, label: cls, real: true };
+        return {
+            id: `r${index}`,
+            pseudo: pseudos[index],
+            feats,
+            label: cls,
+            real: true,
+        };
     });
 }
 
@@ -160,20 +178,35 @@ function buildPreview(points: DataPoint[]): GenerateReport["preview"] {
     const visible = points.filter((p) => !p.real && !p.hidden);
     const stat = (key: typeof CANONICAL_X | typeof CANONICAL_Y) => {
         const values = visible.map((p) => p.feats[key]);
-        const mean = values.reduce((sum, value) => sum + value, 0) / (values.length || 1);
-        const sd = Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length || 1)) || 1;
+        const mean =
+            values.reduce((sum, value) => sum + value, 0) /
+            (values.length || 1);
+        const sd =
+            Math.sqrt(
+                values.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+                    (values.length || 1)
+            ) || 1;
         return { mean, sd };
     };
     const x = stat(CANONICAL_X);
     const y = stat(CANONICAL_Y);
     return visible.map((point) => ({
-        x: Math.max(-3, Math.min(3, (point.feats[CANONICAL_X] - x.mean) / x.sd)),
-        y: Math.max(-3, Math.min(3, (point.feats[CANONICAL_Y] - y.mean) / y.sd)),
+        x: Math.max(
+            -3,
+            Math.min(3, (point.feats[CANONICAL_X] - x.mean) / x.sd)
+        ),
+        y: Math.max(
+            -3,
+            Math.min(3, (point.feats[CANONICAL_Y] - y.mean) / y.sd)
+        ),
         cls: point.label ?? 0,
     }));
 }
 
-export function buildLocalConfig(points: DataPoint[], label = "LABEL_OWL"): WorkshopConfig {
+export function buildLocalConfig(
+    points: DataPoint[],
+    label = "LABEL_OWL"
+): WorkshopConfig {
     const land = new LossLandscape(points);
     return {
         label,
@@ -272,7 +305,10 @@ export class LocalWorkshopRuntime {
             flip: params.flip,
             seed: params.seed,
         });
-        const wireReport = { ...generated.report, preview: buildPreview(generated.points) };
+        const wireReport = {
+            ...generated.report,
+            preview: buildPreview(generated.points),
+        };
         const record: LocalDatasetRecord = {
             schemaVersion: RECORD_VERSION,
             id: `local-${Date.now()}`,
@@ -296,8 +332,15 @@ export class LocalWorkshopRuntime {
         return record;
     }
 
-    async createDefault(params = SYNTH_STRATEGIES[0].defaults): Promise<LocalDatasetRecord> {
-        return this.activate(buildSyntheticRows(params.seed), params, "synthetic", null);
+    async createDefault(
+        params = SYNTH_STRATEGIES[0].defaults
+    ): Promise<LocalDatasetRecord> {
+        return this.activate(
+            buildSyntheticRows(params.seed),
+            params,
+            "synthetic",
+            null
+        );
     }
 
     async importCsv(csv: string): Promise<UiBalanceReport> {
@@ -311,7 +354,12 @@ export class LocalWorkshopRuntime {
     async generate(params: GenerateParams): Promise<VerificationReport> {
         const rows = this.record?.realRows ?? buildSyntheticRows(params.seed);
         const source = this.record?.source ?? "synthetic";
-        const record = await this.activate(rows, params, source, this.record?.balance ?? null);
+        const record = await this.activate(
+            rows,
+            params,
+            source,
+            this.record?.balance ?? null
+        );
         return record.report;
     }
 
@@ -378,22 +426,46 @@ const LOCAL_STATE: ServerState = {
 /** Local adapter for the data-related admin panels. */
 export class LocalAdminService implements AdminService {
     setToken(): void {}
-    async getState(): Promise<ServerState> { return LOCAL_STATE; }
-    async setPhase(phase: Phase): Promise<ServerState> { return { ...LOCAL_STATE, phase }; }
-    async setReveal(_key: RevealKey, _value: boolean): Promise<ServerState> { return LOCAL_STATE; }
-    async setDeadline(_iso: string | null): Promise<ServerState> { return LOCAL_STATE; }
-    async setSelfSelect(_value: boolean): Promise<ServerState> { return LOCAL_STATE; }
+    async getState(): Promise<ServerState> {
+        return LOCAL_STATE;
+    }
+    async setPhase(phase: Phase): Promise<ServerState> {
+        return { ...LOCAL_STATE, phase };
+    }
+    async setReveal(_key: RevealKey, _value: boolean): Promise<ServerState> {
+        return LOCAL_STATE;
+    }
+    async setDeadline(_iso: string | null): Promise<ServerState> {
+        return LOCAL_STATE;
+    }
+    async setSelfSelect(_value: boolean): Promise<ServerState> {
+        return LOCAL_STATE;
+    }
     async getDataset(): Promise<DatasetInfo | null> {
         const record = await localWorkshopRuntime.load();
         return record ? datasetInfo(record) : null;
     }
-    async getDataRows(): Promise<RealRow[]> { return (await localWorkshopRuntime.load())?.realRows ?? []; }
-    async getPoints(): Promise<DataPoint[]> { return (await localWorkshopRuntime.load())?.points ?? []; }
-    async importDataset(input: ImportInput): Promise<UiBalanceReport> { return localWorkshopRuntime.importCsv(input.csv); }
-    async clearData(): Promise<void> { await localWorkshopRuntime.clear(); }
-    async resetDb(): Promise<void> { await localWorkshopRuntime.clear(); }
-    async generate(params: GenerateParams): Promise<VerificationReport> { return localWorkshopRuntime.generate(params); }
-    async getGenerateReport(): Promise<VerificationReport | null> { return (await localWorkshopRuntime.load())?.report ?? null; }
+    async getDataRows(): Promise<RealRow[]> {
+        return (await localWorkshopRuntime.load())?.realRows ?? [];
+    }
+    async getPoints(): Promise<DataPoint[]> {
+        return (await localWorkshopRuntime.load())?.points ?? [];
+    }
+    async importDataset(input: ImportInput): Promise<UiBalanceReport> {
+        return localWorkshopRuntime.importCsv(input.csv);
+    }
+    async clearData(): Promise<void> {
+        await localWorkshopRuntime.clear();
+    }
+    async resetDb(): Promise<void> {
+        await localWorkshopRuntime.clear();
+    }
+    async generate(params: GenerateParams): Promise<VerificationReport> {
+        return localWorkshopRuntime.generate(params);
+    }
+    async getGenerateReport(): Promise<VerificationReport | null> {
+        return (await localWorkshopRuntime.load())?.report ?? null;
+    }
     async getTerrainReports(): Promise<TerrainReportsResult> {
         await localWorkshopRuntime.ensureTerrains();
         return {
@@ -401,11 +473,25 @@ export class LocalAdminService implements AdminService {
             reports: localWorkshopRuntime.reports().map(adaptTerrain),
         };
     }
-    async rerollTerrain(): Promise<void> { await localWorkshopRuntime.rerollTerrain(); }
-    async getStats(): Promise<AdminStats> { return { students: 1, perPhase: [], accBoard: [], lossBoard: [], scoreHist: [] }; }
-    async getPhaseScores(_phase: Phase): Promise<PhaseScores> { return { rows: [], rosterCount: 0 } as unknown as PhaseScores; }
+    async rerollTerrain(): Promise<void> {
+        await localWorkshopRuntime.rerollTerrain();
+    }
+    async getStats(): Promise<AdminStats> {
+        return {
+            students: 1,
+            perPhase: [],
+            accBoard: [],
+            lossBoard: [],
+            scoreHist: [],
+        };
+    }
+    async getPhaseScores(_phase: Phase): Promise<PhaseScores> {
+        return { rows: [], rosterCount: 0 } as unknown as PhaseScores;
+    }
     async grantAttempts(): Promise<void> {}
-    async getWhitelist(): Promise<WhitelistState> { return { enabled: false, entries: [] }; }
+    async getWhitelist(): Promise<WhitelistState> {
+        return { enabled: false, entries: [] };
+    }
     async setWhitelist(_state: WhitelistState): Promise<void> {}
     async dump(): Promise<AdminDump> {
         return {

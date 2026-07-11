@@ -9,6 +9,6 @@
         "directory": "./.output/public",
         // SPA routing: serve index.html (HTTP 200) for any unmatched path,
         // replacing the old GitHub Pages 404.html copy trick.
-        "not_found_handling": "single-page-application"
-    }
+        "not_found_handling": "single-page-application",
+    },
 }

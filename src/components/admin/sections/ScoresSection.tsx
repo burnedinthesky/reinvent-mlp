@@ -158,9 +158,7 @@ export function ScoresSection({ service }: { service: AdminService }) {
                 <h2 className="mt-1 font-display text-xl font-semibold text-fg">
                     {t("admin.scores.title")}
                 </h2>
-                <p className="text-sm text-muted">
-                    {t("admin.scores.body")}
-                </p>
+                <p className="text-sm text-muted">{t("admin.scores.body")}</p>
             </div>
 
             <div className="flex flex-wrap items-end gap-3">
@@ -191,7 +189,9 @@ export function ScoresSection({ service }: { service: AdminService }) {
                         }
                         aria-label={t("admin.scores.groupFilter")}
                     >
-                        <option value="all">{t("admin.scores.allSquads")}</option>
+                        <option value="all">
+                            {t("admin.scores.allSquads")}
+                        </option>
                         {TEAM_LABELS.map((label, i) => (
                             <option key={i} value={i + 1}>
                                 {label}

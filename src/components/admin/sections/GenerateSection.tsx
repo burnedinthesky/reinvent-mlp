@@ -144,9 +144,7 @@ export function GenerateSection({
                 <h2 className="mt-1 font-display text-xl font-semibold text-fg">
                     {t("admin.generate.title")}
                 </h2>
-                <p className="text-sm text-muted">
-                    {t("admin.generate.body")}
-                </p>
+                <p className="text-sm text-muted">{t("admin.generate.body")}</p>
             </div>
 
             <Island className="space-y-5 p-5">
@@ -252,9 +250,7 @@ export function GenerateSection({
             {report && points && (
                 <Island className="space-y-3 p-5">
                     <div className="flex items-center justify-between gap-3">
-                        <MicroLabel>
-                            {t("admin.generate.histogram")}
-                        </MicroLabel>
+                        <MicroLabel>{t("admin.generate.histogram")}</MicroLabel>
                         <Select
                             value={feat}
                             onChange={(e) =>
@@ -611,7 +607,9 @@ function VerificationView({ report }: { report: VerificationReport }) {
     return (
         <Island className="space-y-3 p-5">
             <div className="flex items-baseline justify-between">
-                <MicroLabel>{t("admin.generate.verification.title")}</MicroLabel>
+                <MicroLabel>
+                    {t("admin.generate.verification.title")}
+                </MicroLabel>
                 <span
                     className={`font-mono text-[11px] ${report.allPass ? "text-positive" : "text-warning"}`}
                 >

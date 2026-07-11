@@ -364,7 +364,8 @@ function ServerlessHeader({ onOpenSettings }: { onOpenSettings?: () => void }) {
                     aria-label={t("serverless.profile.title")}
                     className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm sm:p-6"
                     onMouseDown={(event) => {
-                        if (event.target === event.currentTarget) setOpen(false);
+                        if (event.target === event.currentTarget)
+                            setOpen(false);
                     }}
                 >
                     <div className="flex h-[min(82dvh,720px)] w-[min(920px,96vw)] flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-2xl motion-safe:animate-pop-in">
@@ -397,9 +398,13 @@ function ServerlessHeader({ onOpenSettings }: { onOpenSettings?: () => void }) {
                             </aside>
                             <section className="min-h-0 p-5 md:overflow-auto">
                                 <div className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3">
-                                    <BookOpen size={16} className="text-accent" />
+                                    <BookOpen
+                                        size={16}
+                                        className="text-accent"
+                                    />
                                     <span className="font-display text-sm font-semibold text-fg">
-                                        {t("serverless.profile.howTo")} · {phaseName}
+                                        {t("serverless.profile.howTo")} ·{" "}
+                                        {phaseName}
                                     </span>
                                 </div>
                                 <PhaseHelpContent
