@@ -5,6 +5,12 @@
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "sitcon-camp-2026-ml-pt1",
     "compatibility_date": "2026-07-11",
+    // Build the SPA before `wrangler deploy`/`dev` runs, so the deploy is
+    // self-contained — Cloudflare Workers Builds only needs to run
+    // `npx wrangler deploy`, no separate build command required.
+    "build": {
+        "command": "pnpm build:singleplayer",
+    },
     "assets": {
         "directory": "./.output/public",
         // SPA routing: serve index.html (HTTP 200) for any unmatched path,

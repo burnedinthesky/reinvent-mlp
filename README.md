@@ -332,33 +332,36 @@ There are two deploy targets, one per game mode.
 
 ### Single-player → Cloudflare Workers (default)
 
-`pnpm build:singleplayer` emits a static SPA to `.output/public`. No database, no
-server. `wrangler.jsonc` deploys that directory as a Cloudflare Worker serving
+The single-player build is a static SPA (no database, no server). `wrangler.jsonc`
+deploys it as a Cloudflare Worker serving
 [static assets](https://developers.cloudflare.com/workers/static-assets/), with
 `not_found_handling: single-page-application` giving SPA-style routing (any
-unmatched path serves `index.html`).
+unmatched path serves `index.html`). Its `build.command` runs
+`pnpm build:singleplayer` automatically, so `wrangler deploy` is self-contained —
+it builds the SPA to `.output/public` and uploads it in one step.
 
 **Deploy from your machine:**
 
 ```bash
-pnpm cf:deploy      # build:singleplayer + wrangler deploy
-pnpm cf:preview     # build + wrangler dev (local Workers runtime preview)
+pnpm cf:deploy      # wrangler deploy (builds the SPA via the build hook first)
+pnpm cf:preview     # wrangler dev   (local Workers runtime preview)
 ```
 
-`pnpm cf:deploy` runs `wrangler deploy`, which prompts for a Cloudflare login on
-first use (or set `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` in the env).
+`wrangler deploy` prompts for a Cloudflare login on first use (or set
+`CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` in the env).
 
 **Continuous deploys (Cloudflare Workers Builds):** connect this repo in the
 Cloudflare dashboard (**Workers & Pages → your Worker → Settings → Builds**).
-Cloudflare reads `wrangler.jsonc` and builds on every push. Set:
+Because `wrangler.jsonc` carries the build step, the only command Workers Builds
+needs is the default deploy command:
 
-| Setting        | Value                       |
-| -------------- | --------------------------- |
-| Build command  | `pnpm build:singleplayer`   |
-| Deploy command | `npx wrangler deploy`       |
+| Setting        | Value                 |
+| -------------- | --------------------- |
+| Deploy command | `npx wrangler deploy` |
 
-No GitHub Actions workflow is involved — Cloudflare fetches and builds the repo
-itself.
+Leave the **Build command** blank — `wrangler deploy` runs the `build.command`
+from `wrangler.jsonc` itself. No GitHub Actions workflow is involved; Cloudflare
+fetches and builds the repo directly.
 
 ### Multiplayer → self-hosted Nitro server
 
