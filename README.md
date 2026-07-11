@@ -23,9 +23,36 @@ against a hidden test set on the server:
 | P5     | Neuron           | Hand-tune one sigmoid neuron, then unlock hidden layers and train.         | ✅ ACC |
 | P6     | Playground       | A real in-browser MLP trained live over four image datasets (a CNN lab).   | — |
 
-Three surfaces plus two side channels, one backend:
+## Two game modes
 
-- **`/`** — the student workshop app (phones).
+The build-time `ENABLE_MULTIPLAYER` flag picks which of two modes the app runs
+in. It is compiled in by Vite (`import.meta.env.ENABLE_MULTIPLAYER`), so a build
+is one mode or the other — never both.
+
+### Single-player (default — `ENABLE_MULTIPLAYER` unset / `false`)
+
+A fully **browser-only** workshop with no backend. `/` renders the same six
+phases in `serverless` mode:
+
+- The learner is auto-joined as *Local learner* — no squad, no join screen.
+- The dataset lives in the browser's **IndexedDB** (`reinvent-mlp-serverless`).
+  A **Data settings** modal — the admin console's *Generate* and *Import* panels,
+  reused client-side — lets the learner synthesize or upload their own dataset;
+  it opens automatically on first run until a dataset exists.
+- All six phases are freely navigable, the reveal flags are the learner's own
+  client-side toggles, and **scoring, the loss oracle, and the P4 terrains all
+  run in-browser** against the local dataset. No leaderboard, no server, no
+  attempt grants.
+- The build is a static SPA — deployable to GitHub Pages (`.output/public`).
+  `/admin`, `/leaderboard`, `/mlp-playground`, and `/api/query` are compiled out
+  and redirect to `/`.
+
+### Multiplayer (`ENABLE_MULTIPLAYER=true`)
+
+The live, operator-driven classroom. `/` (and the explicit `/room`) is the room
+UI; the backend, admin console, and side channels are enabled:
+
+- **`/`** / **`/room`** — the student workshop app (phones).
 - **`/admin`** — the operator console: import the survey CSV, generate & verify a
   synthetic dataset, manage the squad roster, drive phase/reveal/deadline
   "theater," and watch live per-phase scores.
@@ -35,9 +62,9 @@ Three surfaces plus two side channels, one backend:
 - **`/api/query`** — a raw HTTP loss oracle for "uni-tier" students driving
   descent from `curl` / Python.
 
-Everything is **live from the backend** — there is no offline/mock mode. The room
-boots fully *gated* (hidden labels and later beats not revealed) and the operator
-opens each beat at the dramatic moment.
+Multiplayer is **live from the backend**. The room boots fully *gated* (hidden
+labels and later beats not revealed) and the operator opens each beat at the
+dramatic moment. Scoring grades server-side against a hidden test set.
 
 ---
 
@@ -202,13 +229,17 @@ scores every ~2 s.
 
 ### Routes
 
-| Route             | Surface                                                  |
-| ----------------- | -------------------------------------------------------- |
-| `/`               | Student workshop app                                     |
-| `/admin`          | Operator console (`?admin_token=…` or token gate)        |
-| `/leaderboard`    | Public per-phase squad leaderboard (read-only, no token) |
-| `/mlp-playground` | Standalone client-side MLP playground                    |
-| `/api/query`      | Raw uni-tier loss oracle (`POST`, Bearer token)          |
+In the single-player build only `/` exists; every multiplayer-only route below
+redirects to `/` (or 404s, for `/api/query`) when `ENABLE_MULTIPLAYER` is off.
+
+| Route             | Surface                                                  | Mode      |
+| ----------------- | -------------------------------------------------------- | --------- |
+| `/`               | Student workshop app (serverless single-player, or room) | both      |
+| `/room`           | Room student app (explicit)                              | multi     |
+| `/admin`          | Operator console (`?admin_token=…` or token gate)        | multi     |
+| `/leaderboard`    | Public per-phase squad leaderboard (read-only, no token) | multi     |
+| `/mlp-playground` | Standalone client-side MLP playground                    | multi     |
+| `/api/query`      | Raw uni-tier loss oracle (`POST`, Bearer token)          | multi     |
 
 ---
 
@@ -223,11 +254,12 @@ pnpm install
 pnpm db:generate
 pnpm db:push            # creates prisma/dev.db from schema.prisma
 
-pnpm dev                # http://localhost:3000
+pnpm dev                # single-player, http://localhost:3000
+ENABLE_MULTIPLAYER=true pnpm dev  # room + admin backend
 ```
 
-Server functions run in dev automatically via the Nitro plugin — the app always
-talks to the live backend (there is no offline flag).
+`ENABLE_MULTIPLAYER` is read and compiled into the app by Vite. It defaults to
+`false`; only the `true` build exposes multiplayer routes.
 
 Because the room boots **fully gated**, the first-run flow is:
 
@@ -240,6 +272,34 @@ Because the room boots **fully gated**, the first-run flow is:
    `p5_deep`, …), toggle self-select, arm a countdown.
 6. Open **`/`** in another tab, pick a squad + name, and watch phase/reveal/
    deadline propagate within one poll. Open **`/leaderboard`** for the big screen.
+
+Build artifacts:
+
+```bash
+pnpm build                 # default single-player GitHub Pages artifact
+pnpm build:singleplayer    # explicit equivalent
+pnpm build:multiplayer     # Node/SQLite multiplayer server
+```
+
+GitHub Actions automatically supplies `GITHUB_REPOSITORY`; the static build uses
+it to prefix assets for project Pages. Set `GITHUB_PAGES_BASE=/custom/path/` to
+override that derived base. `.github/workflows/deploy-pages.yml` builds and
+deploys this artifact automatically on every push to `main`, and can also be run
+manually from the Actions tab.
+
+### Docker multiplayer deployment
+
+The container always builds the multiplayer server and persists SQLite in a
+named Compose volume. Set a real admin token before starting it:
+
+```bash
+ADMIN_TOKEN='replace-with-a-long-secret' docker compose up --build -d
+```
+
+The app listens on `http://localhost:3000`. Set `APP_PORT` to publish another
+host port. On startup, the container applies any unapplied SQL migrations before
+launching Nitro; the `workshop-data` volume survives image rebuilds and container
+replacement.
 
 Useful scripts:
 
@@ -271,7 +331,22 @@ node scripts/build-datasets.mjs --only=cifar10,mnist   # rebuild a subset
 
 ## Deployment guide
 
-The app builds to a self-contained Nitro node server.
+There are two deploy targets, one per game mode.
+
+### Single-player → GitHub Pages (default)
+
+`pnpm build` emits a static SPA to `.output/public` (`prepare-github-pages.mjs`
+adds `404.html` + `.nojekyll` for SPA routing). No database, no server. On every
+push to `main`, `.github/workflows/deploy-pages.yml` runs this build with
+`ENABLE_MULTIPLAYER=false` and publishes the artifact — nothing else is needed.
+`GITHUB_REPOSITORY` (supplied by Actions) derives the asset base for project
+Pages; set `GITHUB_PAGES_BASE=/custom/path/` to override it.
+
+### Multiplayer → self-hosted Nitro server
+
+The multiplayer build is a self-contained Nitro node server backed by SQLite.
+The turnkey path is Docker (see **Docker multiplayer deployment** above); to run
+it by hand:
 
 ```bash
 pnpm install
@@ -280,7 +355,7 @@ pnpm db:generate
 # apply the schema to the target database
 pnpm exec prisma migrate deploy    # or: pnpm db:push for a fresh SQLite file
 
-pnpm build                         # emits .output/
+pnpm build:multiplayer             # ENABLE_MULTIPLAYER=true; emits .output/
 node .output/server/index.mjs      # serves the app (default port 3000)
 ```
 
