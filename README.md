@@ -276,16 +276,13 @@ Because the room boots **fully gated**, the first-run flow is:
 Build artifacts:
 
 ```bash
-pnpm build                 # default single-player GitHub Pages artifact
+pnpm build                 # default single-player static SPA (.output/public)
 pnpm build:singleplayer    # explicit equivalent
 pnpm build:multiplayer     # Node/SQLite multiplayer server
 ```
 
-GitHub Actions automatically supplies `GITHUB_REPOSITORY`; the static build uses
-it to prefix assets for project Pages. Set `GITHUB_PAGES_BASE=/custom/path/` to
-override that derived base. `.github/workflows/deploy-pages.yml` builds and
-deploys this artifact automatically on every push to `main`, and can also be run
-manually from the Actions tab.
+The single-player build serves from the domain root. Set `BASE_PATH=/custom/path/`
+only if you host it under a sub-path.
 
 ### Docker multiplayer deployment
 
@@ -333,14 +330,35 @@ node scripts/build-datasets.mjs --only=cifar10,mnist   # rebuild a subset
 
 There are two deploy targets, one per game mode.
 
-### Single-player → GitHub Pages (default)
+### Single-player → Cloudflare Workers (default)
 
-`pnpm build` emits a static SPA to `.output/public` (`prepare-github-pages.mjs`
-adds `404.html` + `.nojekyll` for SPA routing). No database, no server. On every
-push to `main`, `.github/workflows/deploy-pages.yml` runs this build with
-`ENABLE_MULTIPLAYER=false` and publishes the artifact — nothing else is needed.
-`GITHUB_REPOSITORY` (supplied by Actions) derives the asset base for project
-Pages; set `GITHUB_PAGES_BASE=/custom/path/` to override it.
+`pnpm build:singleplayer` emits a static SPA to `.output/public`. No database, no
+server. `wrangler.jsonc` deploys that directory as a Cloudflare Worker serving
+[static assets](https://developers.cloudflare.com/workers/static-assets/), with
+`not_found_handling: single-page-application` giving SPA-style routing (any
+unmatched path serves `index.html`).
+
+**Deploy from your machine:**
+
+```bash
+pnpm cf:deploy      # build:singleplayer + wrangler deploy
+pnpm cf:preview     # build + wrangler dev (local Workers runtime preview)
+```
+
+`pnpm cf:deploy` runs `wrangler deploy`, which prompts for a Cloudflare login on
+first use (or set `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` in the env).
+
+**Continuous deploys (Cloudflare Workers Builds):** connect this repo in the
+Cloudflare dashboard (**Workers & Pages → your Worker → Settings → Builds**).
+Cloudflare reads `wrangler.jsonc` and builds on every push. Set:
+
+| Setting        | Value                       |
+| -------------- | --------------------------- |
+| Build command  | `pnpm build:singleplayer`   |
+| Deploy command | `npx wrangler deploy`       |
+
+No GitHub Actions workflow is involved — Cloudflare fetches and builds the repo
+itself.
 
 ### Multiplayer → self-hosted Nitro server
 

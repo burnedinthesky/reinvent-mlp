@@ -1,0 +1,14 @@
+{
+    // Single-player workshop deployed as a Cloudflare Worker serving static
+    // assets. `pnpm build:singleplayer` emits the SPA to `.output/public`.
+    // https://developers.cloudflare.com/workers/static-assets/
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "sitcon-camp-2026-ml-pt1",
+    "compatibility_date": "2026-07-11",
+    "assets": {
+        "directory": "./.output/public",
+        // SPA routing: serve index.html (HTTP 200) for any unmatched path,
+        // replacing the old GitHub Pages 404.html copy trick.
+        "not_found_handling": "single-page-application"
+    }
+}

@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import type { Plugin } from "vite";
 import { devtools } from "@tanstack/devtools-vite";
 
@@ -69,24 +69,46 @@ function p7DatasetGuard(): Plugin {
   };
 }
 
-const config = defineConfig({
-    resolve: { tsconfigPaths: true },
-    server: {
-        allowedHosts: ["mlp.kuo.is"],
-    },
-    plugins: [
-        p7DatasetGuard(),
-        tailwindcss(),
-        devtools(),
-        tanstackStart(),
-        // The node-server preset already externalizes node_modules and traces
-        // native bindings (better-sqlite3, @prisma) into .output/server/node_modules.
-        // Passing a custom rollupConfig.external clobbers Nitro's own rollup config
-        // and externalizes the Nitro runtime itself, producing a stub app that 404s
-        // every route ("stub implementation will be used" warning). Leave it default.
-        nitro(),
-        viteReact(),
-    ],
-});
+function envFlag(value: string | undefined): boolean {
+    return value?.trim().toLowerCase() === "true";
+}
 
-export default config;
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, process.cwd(), "");
+    const enableMultiplayer = envFlag(
+        process.env.ENABLE_MULTIPLAYER ?? env.ENABLE_MULTIPLAYER
+    );
+    // Cloudflare Workers (and the multiplayer Nitro server) both serve from the
+    // domain root. Set BASE_PATH only when hosting under a sub-path.
+    const base = env.BASE_PATH || "/";
+
+    return {
+        base,
+        define: {
+            "import.meta.env.ENABLE_MULTIPLAYER":
+                JSON.stringify(enableMultiplayer),
+        },
+        resolve: { tsconfigPaths: true },
+        server: {
+            allowedHosts: ["mlp.kuo.is"],
+        },
+        plugins: [
+            p7DatasetGuard(),
+            tailwindcss(),
+            devtools(),
+            tanstackStart(
+                enableMultiplayer
+                    ? undefined
+                    : {
+                          spa: {
+                              enabled: true,
+                              maskPath: "/",
+                              prerender: { outputPath: "/index" },
+                          },
+                      }
+            ),
+            nitro({ preset: "node-server" }),
+            viteReact(),
+        ],
+    };
+});

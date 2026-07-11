@@ -9,7 +9,11 @@
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vite build",
+    "build:singleplayer": "ENABLE_MULTIPLAYER=false pnpm build",
+    "build:multiplayer": "ENABLE_MULTIPLAYER=true vite build",
     "preview": "vite preview",
+    "cf:preview": "pnpm build:singleplayer && wrangler dev",
+    "cf:deploy": "pnpm build:singleplayer && wrangler deploy",
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier --write . && eslint --fix",
@@ -54,6 +58,7 @@
     "prisma": "^7.8.0",
     "typescript": "^6.0.3",
     "vite": "^8.1.4",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.110.0"
   }
 }
