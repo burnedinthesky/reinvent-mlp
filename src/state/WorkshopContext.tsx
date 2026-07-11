@@ -8,6 +8,7 @@ import type { ReactNode, MutableRefObject } from "react";
 import { toast } from "sonner";
 
 import { getWorkshopService } from "#/lib/workshop/data-service";
+import type { WorkshopDataService } from "#/lib/workshop/data-service";
 import { slotRecord } from "#/lib/workshop/blocks";
 import { WorkshopContext } from "./workshop-context";
 import { CANONICAL_X, CANONICAL_Y } from "#/lib/workshop/features";
@@ -232,6 +233,7 @@ type Action =
     | { type: "setName"; v: string }
     | { type: "joined"; nickname: string }
     | { type: "logout" }
+    | { type: "reset"; joined: boolean }
     | { type: "setPhase"; v: Phase }
     | { type: "patch"; slice: SliceName; patch: Patch<unknown> };
 
@@ -362,6 +364,13 @@ function reducer(state: Store, action: Action): Store {
             // drop the identity and return to the join screen; keep the prefilled team
             // so a returning student re-enters their own squad by default.
             return { ...state, screen: "join", name: "", nickname: "" };
+        case "reset":
+            return {
+                ...initialStore,
+                screen: action.joined ? "app" : "join",
+                name: action.joined ? "Local learner" : "",
+                nickname: action.joined ? "Local learner" : "",
+            };
         case "setPhase":
             return { ...state, phase: action.v };
         case "patch": {
@@ -379,7 +388,13 @@ function reducer(state: Store, action: Action): Store {
 
 export interface WorkshopContextValue {
     ready: boolean;
-    service: ReturnType<typeof getWorkshopService>;
+    service: WorkshopDataService;
+    /** true for the browser-only workshop at `/`. */
+    serverless: boolean;
+    /** whether a valid client dataset has been hydrated. */
+    hasDataset: boolean;
+    /** initial persistence lookup has completed. */
+    datasetChecked: boolean;
     config: WorkshopConfig | null;
     realRows: RealRow[];
     points: DataPoint[];
@@ -425,6 +440,8 @@ export interface WorkshopContextValue {
     /** flip one of the student's own reveal flags (self-select mode only). No-op
       on the server flags — when self-select is off, the operator drives reveals. */
     setClientReveal: (key: keyof Reveals, value: boolean) => void;
+    /** Re-read the active dataset and clear phase-local work after data changes. */
+    reloadDataset: () => Promise<void>;
     patch: <TSlice extends SliceName>(
         slice: TSlice,
         patch: Patch<SliceOf<TSlice>>
@@ -442,13 +459,21 @@ function blankReveals(): Reveals {
 export function WorkshopProvider({
     children,
     preview = null,
+    mode = "room",
+    service: serviceOverride,
 }: {
     children: ReactNode;
     /** instructor preview: the phase to open on, or null for the normal app. */
     preview?: Phase | null;
+    mode?: "room" | "serverless";
+    service?: WorkshopDataService;
 }) {
     const [store, dispatch] = useReducer(reducer, initialStore);
-    const service = useMemo(() => getWorkshopService(), []);
+    const service = useMemo(
+        () => serviceOverride ?? getWorkshopService(),
+        [serviceOverride]
+    );
+    const serverless = mode === "serverless";
     const netEngineRef = useRef<NetEngine | null>(null);
     const p5EngineRef = useRef<NetEngine | null>(null);
     const cnnEngineRef = useRef<MlpNetClient | null>(null);
@@ -471,6 +496,8 @@ export function WorkshopProvider({
         waiting: boolean;
         /** P4 background terrain-build status carried on /state. */
         terrainStatus: TerrainStatus | null;
+        hasDataset: boolean;
+        datasetChecked: boolean;
     }
     // merge reducer: the 4 s poll patches reveals/deadline without replacing
     // points/realRows, so canvas memo deps stay referentially stable between polls.
@@ -488,6 +515,8 @@ export function WorkshopProvider({
             online: true,
             waiting: false,
             terrainStatus: null,
+            hasDataset: false,
+            datasetChecked: false,
         }
     );
 
@@ -545,6 +574,11 @@ export function WorkshopProvider({
         dispatch({ type: "setPhase", v: preview });
     }, [preview]);
 
+    useEffect(() => {
+        if (!serverless) return;
+        dispatch({ type: "joined", nickname: "Local learner" });
+    }, [serverless]);
+
     // restore a saved bearer token before the first data load, and prefill the
     // last squad + name. If we also have a token, the student already joined this
     // room, so drop them straight back into the app on refresh rather than the
@@ -552,7 +586,7 @@ export function WorkshopProvider({
     // reconstructs the display nickname without a server round-trip. Skipped in
     // preview — there is no session, and a saved token must not override it.
     useEffect(() => {
-        if (preview) return;
+        if (preview || serverless) return;
         try {
             const t = localStorage.getItem("mlp_token");
             if (t) service.setToken(t);
@@ -569,7 +603,7 @@ export function WorkshopProvider({
         } catch {
             /* storage unavailable — ignore */
         }
-    }, [service, preview]);
+    }, [service, preview, serverless]);
 
     // initial load of the drawable bundle + server state. Retries every 4 s while
     // the room is unreachable so a student who opens the app before the room is up
@@ -586,7 +620,7 @@ export function WorkshopProvider({
             Promise.all([
                 service.getBundle(),
                 service.getState(),
-                service.getLimits().catch(() => ({}) as PhaseCaps),
+                service.getLimits().catch(() => ({})),
             ])
                 .then(([bundle, state, caps]) => {
                     if (!alive) return;
@@ -603,6 +637,8 @@ export function WorkshopProvider({
                         caps,
                         selfSelect: state.selfSelect,
                         terrainStatus: state.terrain ?? null,
+                        hasDataset: true,
+                        datasetChecked: true,
                     });
                     // land on the room's live phase (reload / rejoin recovery). In preview
                     // the phase is driven by hand, so record the room phase but never adopt it.
@@ -612,6 +648,16 @@ export function WorkshopProvider({
                 })
                 .catch((e: unknown) => {
                     if (!alive) return;
+                    if (serverless && isRoomNotOpen(e)) {
+                        setData({
+                            ready: false,
+                            online: true,
+                            waiting: false,
+                            hasDataset: false,
+                            datasetChecked: true,
+                        });
+                        return;
+                    }
                     if (isRoomNotOpen(e)) {
                         // room is up, but the operator hasn't loaded the survey yet — hold on
                         // the "waiting for the room to open" screen and keep polling.
@@ -629,13 +675,13 @@ export function WorkshopProvider({
             alive = false;
             if (retry) clearTimeout(retry);
         };
-    }, [service]);
+    }, [service, serverless]);
 
     // poll /state so admin reveals, phase changes, and the deadline reach every
     // screen within one poll. Reveal flips of the two label gates re-fetch the
     // bundle (the re-gated labels arrive with it).
     useEffect(() => {
-        if (!data.ready) return;
+        if (!data.ready || serverless) return;
         let inFlight = false;
         const id = setInterval(async () => {
             if (inFlight) return;
@@ -727,12 +773,62 @@ export function WorkshopProvider({
             }
         }, 4000);
         return () => clearInterval(id);
-    }, [data.ready, service]);
+    }, [data.ready, service, serverless]);
 
     // preview behaves like a self-select student: the instructor drives phase +
     // reveals locally, so the reveal source, label stripping, and Header nav all
     // key off this rather than the room's server flag.
-    const effectiveSelfSelect = !!preview || data.selfSelect;
+    const effectiveSelfSelect = serverless || !!preview || data.selfSelect;
+
+    const reloadDataset = async () => {
+        try {
+            const [bundle, state, caps] = await Promise.all([
+                service.getBundle(),
+                service.getState(),
+                service.getLimits(),
+            ]);
+            const resettable = service as WorkshopDataService & {
+                resetSession?: () => void;
+            };
+            resettable.resetSession?.();
+            netEngineRef.current = null;
+            p5EngineRef.current = null;
+            cnnEngineRef.current = null;
+            dispatch({ type: "reset", joined: serverless });
+            patchClientReveals(blankReveals());
+            setData({
+                ready: true,
+                hasDataset: true,
+                datasetChecked: true,
+                online: true,
+                waiting: false,
+                config: bundle.config,
+                realRows: bundle.realRows,
+                points: bundle.points,
+                reveals: state.reveals,
+                deadline: state.deadline,
+                caps,
+                selfSelect: state.selfSelect,
+                terrainStatus: state.terrain ?? null,
+            });
+        } catch (error) {
+            if (serverless && isRoomNotOpen(error)) {
+                dispatch({ type: "reset", joined: true });
+                setData({
+                    ready: false,
+                    hasDataset: false,
+                    datasetChecked: true,
+                    config: null,
+                    realRows: [],
+                    points: [],
+                    waiting: false,
+                    online: true,
+                });
+                return;
+            }
+            throw error;
+        }
+    };
     // P5 trains on the 100 synthetic dots, but self-navigating students reach it
     // without having flipped reveal100 back in P2 — so force it on for their P5.
     const revealSynth =
@@ -773,6 +869,9 @@ export function WorkshopProvider({
         () => ({
             ready: data.ready,
             service,
+            serverless,
+            hasDataset: data.hasDataset,
+            datasetChecked: data.datasetChecked,
             config: data.config,
             realRows,
             points,
@@ -825,6 +924,7 @@ export function WorkshopProvider({
             },
             setPhase: (v) => dispatch({ type: "setPhase", v }),
             setClientReveal: (key, v) => patchClientReveals({ [key]: v }),
+            reloadDataset,
             patch: (slice, patch) =>
                 dispatch({
                     type: "patch",
@@ -841,6 +941,7 @@ export function WorkshopProvider({
             realRows,
             preview,
             effectiveSelfSelect,
+            serverless,
         ]
     );
 

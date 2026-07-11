@@ -138,7 +138,7 @@ export function buildLoadedDataset(
     No canvas: DecompressionStream('gzip') gives deterministic raw pixels. */
 export async function loadPacked(
     id: DatasetId,
-    base = "/datasets"
+    base = `${import.meta.env.BASE_URL}datasets`.replace(/\/$/, "")
 ): Promise<PackedDataset> {
     const [manifest, raw] = await Promise.all([
         fetch(`${base}/${id}.json`).then(

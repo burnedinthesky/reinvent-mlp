@@ -5,11 +5,17 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { bearerToken, uniQuery } from "#/lib/workshop/server/uni-query";
+import { ENABLE_MULTIPLAYER } from "#/env";
 
 export const Route = createFileRoute("/api/query")({
     server: {
         handlers: {
             POST: async ({ request }) => {
+                if (!ENABLE_MULTIPLAYER)
+                    return Response.json(
+                        { error: "multiplayer disabled" },
+                        { status: 404 }
+                    );
                 const token = bearerToken(request.headers.get("authorization"));
                 let body: { w?: unknown; b?: unknown } = {};
                 try {

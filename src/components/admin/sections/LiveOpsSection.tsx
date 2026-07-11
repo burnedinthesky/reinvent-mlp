@@ -46,7 +46,7 @@ export function LiveOpsSection({
                 <div className="flex items-center justify-between gap-3">
                     <MicroLabel>{t("admin.liveops.currentPhase")}</MicroLabel>
                     <a
-                        href="/?preview"
+                        href="/room?preview"
                         target="_blank"
                         rel="noreferrer"
                         title={t("admin.liveops.previewTitle")}

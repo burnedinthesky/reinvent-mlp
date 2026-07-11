@@ -1,10 +1,14 @@
+import { useEffect, useState } from "react";
+
 import { AppShell } from "./AppShell";
+import { DataSettingsModal } from "./DataSettingsModal";
 import { JoinScreen } from "./JoinScreen";
 import { WorkshopProvider } from "#/state/WorkshopContext";
 import { useI18n } from "#/lib/i18n/context";
 import { useWorkshop } from "#/state/workshop-context";
 import { PHASES } from "#/lib/workshop/constants";
 import type { Phase } from "#/lib/workshop/types";
+import { getLocalDataService } from "#/lib/workshop/local-data-service";
 
 /** Instructor preview: `/?preview` renders the student UI locally (driving the
     phase by hand, never touching the room) so a phase can be demoed before it's
@@ -18,11 +22,55 @@ function readPreviewPhase(): Phase | null {
     return v && (PHASES as string[]).includes(v) ? (v as Phase) : "P1";
 }
 
-function Screen({ preview }: { preview: Phase | null }) {
+function Screen({
+    preview,
+    serverless,
+    onOpenSettings,
+}: {
+    preview: Phase | null;
+    serverless: boolean;
+    onOpenSettings?: () => void;
+}) {
     const { store } = useWorkshop();
+    if (serverless) return <AppShell onOpenSettings={onOpenSettings} />;
     // preview bypasses the join screen entirely — there's no session to gate on.
     if (preview) return <AppShell />;
     return store.screen === "join" ? <JoinScreen /> : <AppShell />;
+}
+
+function WorkshopScreen({
+    preview,
+    serverless,
+}: {
+    preview: Phase | null;
+    serverless: boolean;
+}) {
+    const { datasetChecked, hasDataset } = useWorkshop();
+    const [settingsOpen, setSettingsOpen] = useState(false);
+
+    useEffect(() => {
+        if (serverless && datasetChecked && !hasDataset) setSettingsOpen(true);
+    }, [datasetChecked, hasDataset, serverless]);
+
+    return (
+        <>
+            <Screen
+                preview={preview}
+                serverless={serverless}
+                onOpenSettings={() => setSettingsOpen(true)}
+            />
+            {!serverless && <DisconnectGuard />}
+            {!serverless && <RoomWaitingGuard />}
+            {serverless && (
+                <DataSettingsModal
+                    open={settingsOpen}
+                    onClose={() => {
+                        if (hasDataset) setSettingsOpen(false);
+                    }}
+                />
+            )}
+        </>
+    );
 }
 
 /** Blocking overlay shown when the student loses its live link to the room. It
@@ -74,14 +122,21 @@ function RoomWaitingGuard() {
     );
 }
 
-export function WorkshopApp() {
-    const preview = readPreviewPhase();
+export function WorkshopApp({
+    mode = "serverless",
+}: {
+    mode?: "serverless" | "room";
+}) {
+    const serverless = mode === "serverless";
+    const preview = serverless ? null : readPreviewPhase();
     return (
-        <WorkshopProvider preview={preview}>
+        <WorkshopProvider
+            preview={preview}
+            mode={mode}
+            service={serverless ? getLocalDataService() : undefined}
+        >
             <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
-                <Screen preview={preview} />
-                <DisconnectGuard />
-                <RoomWaitingGuard />
+                <WorkshopScreen preview={preview} serverless={serverless} />
             </div>
         </WorkshopProvider>
     );

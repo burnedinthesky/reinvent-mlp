@@ -405,26 +405,44 @@ export function PhaseHelpModal({
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
-                        {phase === "P1" ? (
-                            <P1Help t={t} />
-                        ) : phase === "P2" ? (
-                            <P2Help t={t} lineMode={lineMode} />
-                        ) : phase === "P3" ? (
-                            <P3Help t={t} wbMode={p3wb} />
-                        ) : phase === "P4" ? (
-                            <P4Help t={t} />
-                        ) : phase === "P5" ? (
-                            <P5Help t={t} deep={p5Deep} />
-                        ) : phase === "P6" ? (
-                            <P6Help t={t} />
-                        ) : (
-                            <p className="text-sm leading-relaxed text-muted">
-                                {t("help.none")}
-                            </p>
-                        )}
+                        <PhaseHelpContent
+                            phase={phase}
+                            lineMode={lineMode}
+                            p3wb={p3wb}
+                            p5Deep={p5Deep}
+                        />
                     </div>
                 </div>
             </Island>
         </div>
+    );
+}
+
+export function PhaseHelpContent({
+    phase,
+    lineMode,
+    p3wb,
+    p5Deep,
+}: {
+    phase: Phase;
+    lineMode: boolean;
+    p3wb: boolean;
+    p5Deep: boolean;
+}) {
+    const { t } = useI18n();
+    return phase === "P1" ? (
+        <P1Help t={t} />
+    ) : phase === "P2" ? (
+        <P2Help t={t} lineMode={lineMode} />
+    ) : phase === "P3" ? (
+        <P3Help t={t} wbMode={p3wb} />
+    ) : phase === "P4" ? (
+        <P4Help t={t} />
+    ) : phase === "P5" ? (
+        <P5Help t={t} deep={p5Deep} />
+    ) : phase === "P6" ? (
+        <P6Help t={t} />
+    ) : (
+        <p className="text-sm leading-relaxed text-muted">{t("help.none")}</p>
     );
 }

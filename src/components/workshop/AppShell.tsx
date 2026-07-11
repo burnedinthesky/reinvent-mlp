@@ -44,7 +44,11 @@ function PhaseView() {
     }
 }
 
-export function AppShell() {
+export function AppShell({
+    onOpenSettings,
+}: {
+    onOpenSettings?: () => void;
+}) {
     const { store, ready } = useWorkshop();
     const fullBleed =
         store.phase === "P2" ||
@@ -54,7 +58,7 @@ export function AppShell() {
         store.phase === "NONE";
     return (
         <>
-            <Header />
+            <Header onOpenSettings={onOpenSettings} />
             <main
                 className={
                     fullBleed

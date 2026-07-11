@@ -1,12 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { JoinScreen } from "#/components/workshop/JoinScreen";
 import { MlpPlayground } from "#/components/workshop/MlpPlayground";
 import { WorkshopProvider } from "#/state/WorkshopContext";
 import { useWorkshop } from "#/state/workshop-context";
 import { LocaleProvider } from "#/lib/i18n/route";
+import { ENABLE_MULTIPLAYER } from "#/env";
 
 export const Route = createFileRoute("/mlp-playground")({
+    beforeLoad: () => {
+        if (!ENABLE_MULTIPLAYER) throw redirect({ to: "/" });
+    },
     component: MlpPlaygroundRoute,
 });
 

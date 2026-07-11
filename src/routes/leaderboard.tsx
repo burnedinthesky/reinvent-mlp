@@ -4,7 +4,7 @@
    squad with no scorers lands on 0% (accuracy) / 100 (loss). Polls the server
    every 2 s; no token required. */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { Island, MicroLabel } from "#/components/workshop/ui";
@@ -14,8 +14,12 @@ import type { MessageKey } from "#/lib/i18n/messages";
 import { LocaleProvider } from "#/lib/i18n/route";
 import { teamBoardsFn } from "#/lib/workshop/fn/leaderboard";
 import type { Phase, PhaseTeamBoard, TeamBoardRow } from "#/lib/workshop/types";
+import { ENABLE_MULTIPLAYER } from "#/env";
 
 export const Route = createFileRoute("/leaderboard")({
+    beforeLoad: () => {
+        if (!ENABLE_MULTIPLAYER) throw redirect({ to: "/" });
+    },
     component: LeaderboardRouteWithLocale,
 });
 

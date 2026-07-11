@@ -6,12 +6,19 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { getInitialLocaleFn } from "#/lib/i18n/fn";
 import { DEFAULT_LOCALE, htmlLang } from "#/lib/i18n";
+import { ENABLE_MULTIPLAYER } from "#/env";
+
+const publicBase = import.meta.env.BASE_URL;
 
 export const Route = createRootRoute({
     // Resolve the locale on the server (cookie → Accept-Language → default) and
     // stash it in root context, so <html lang> and every route's LocaleProvider
     // seed the right language on the first paint — no flash.
-    beforeLoad: async () => ({ locale: await getInitialLocaleFn() }),
+    beforeLoad: async () => ({
+        locale: ENABLE_MULTIPLAYER
+            ? await getInitialLocaleFn()
+            : DEFAULT_LOCALE,
+    }),
     head: () => ({
         meta: [
             {
@@ -30,10 +37,10 @@ export const Route = createRootRoute({
             },
         ],
         links: [
-            { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
-            { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-            { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
-            { rel: "manifest", href: "/manifest.json" },
+            { rel: "icon", href: `${publicBase}favicon.ico`, sizes: "48x48" },
+            { rel: "icon", href: `${publicBase}favicon.svg`, type: "image/svg+xml" },
+            { rel: "apple-touch-icon", href: `${publicBase}apple-touch-icon.png` },
+            { rel: "manifest", href: `${publicBase}manifest.json` },
             { rel: "preconnect", href: "https://fonts.googleapis.com" },
             {
                 rel: "preconnect",
@@ -59,7 +66,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     // only to stamp the server-resolved <html lang>.
     const { locale } = Route.useRouteContext();
     return (
-        <html lang={htmlLang(locale ?? DEFAULT_LOCALE)}>
+        <html lang={htmlLang(locale)}>
             <head>
                 <HeadContent />
             </head>

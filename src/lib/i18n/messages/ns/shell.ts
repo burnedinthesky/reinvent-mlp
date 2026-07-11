@@ -36,6 +36,19 @@ export const shellZh = {
     "header.logout": "登出",
     "header.revealToggles": "顯示開關",
 
+    "serverless.profile.eyebrow": "本機工作坊",
+    "serverless.profile.title": "我的學習空間",
+    "serverless.profile.navigation": "階段導覽",
+    "serverless.profile.howTo": "玩法說明",
+    "serverless.profile.settings": "資料設定",
+    "serverless.settings.eyebrow": "瀏覽器資料",
+    "serverless.settings.title": "資料設定",
+    "serverless.settings.required":
+        "開始前請先生成預設合成資料，或匯入 CSV。資料只會儲存在這個瀏覽器。",
+    "serverless.settings.active": "目前資料集 · {count} 筆",
+    "serverless.settings.none": "尚未儲存資料集",
+    "serverless.settings.continue": "繼續進入工作坊",
+
     // phase display names (shared: Header nav, help modal, admin)
     "phases.P1.name": "猜猜類別",
     "phases.P2.name": "圈選規則",
@@ -108,6 +121,19 @@ export const shellEn: Record<keyof typeof shellZh, string> = {
     "header.exitPreview": "Exit preview",
     "header.logout": "Log out",
     "header.revealToggles": "Reveal toggles",
+
+    "serverless.profile.eyebrow": "Local workshop",
+    "serverless.profile.title": "My learning space",
+    "serverless.profile.navigation": "Phase navigation",
+    "serverless.profile.howTo": "How to play",
+    "serverless.profile.settings": "Data settings",
+    "serverless.settings.eyebrow": "Browser data",
+    "serverless.settings.title": "Data settings",
+    "serverless.settings.required":
+        "Generate the default synthetic dataset or import a CSV before continuing. Data stays in this browser.",
+    "serverless.settings.active": "Active dataset · {count} points",
+    "serverless.settings.none": "No dataset saved",
+    "serverless.settings.continue": "Continue to workshop",
 
     "phases.P1.name": "Guess the Class",
     "phases.P2.name": "Circle the Rule",

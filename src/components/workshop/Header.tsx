@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { BookOpen, Database, UserRound, X } from "lucide-react";
 
-import { PhaseHelpModal } from "#/components/workshop/PhaseHelpModal";
+import {
+    PhaseHelpContent,
+    PhaseHelpModal,
+} from "#/components/workshop/PhaseHelpModal";
 import { GhostButton, Island } from "#/components/workshop/ui";
 import { LanguageSwitcher } from "#/components/LanguageSwitcher";
 import { Toggle } from "#/components/admin/ui";
@@ -172,7 +176,7 @@ function RevealToggles() {
 /** Collapsed floating profile menu (top-right). A compact avatar chip showing the
     current phase; click to open a popover with the timer and — when self-select
     is enabled — phase-navigation chips + per-phase reveal toggles. */
-export function Header() {
+function RoomHeader() {
     const { store, selfSelect, reveals, logout, preview } = useWorkshop();
     const { t } = useI18n();
     const [open, setOpen] = useState(false);
@@ -317,5 +321,142 @@ export function Header() {
                 />
             )}
         </div>
+    );
+}
+
+function ServerlessHeader({ onOpenSettings }: { onOpenSettings?: () => void }) {
+    const { store, reveals } = useWorkshop();
+    const { t } = useI18n();
+    const [open, setOpen] = useState(false);
+
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setOpen(false);
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open]);
+
+    const phaseName = t(PHASE_NAME_KEY[store.phase]);
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={() => setOpen(true)}
+                aria-label={t("header.aria.menu")}
+                aria-expanded={open}
+                className="fixed top-3 right-3 z-40 flex h-10 items-center gap-2 rounded-full border border-border bg-panel/90 px-2.5 shadow-lg backdrop-blur transition-colors hover:border-accent"
+            >
+                <span className="hidden font-mono text-[10px] tracking-wide text-muted uppercase sm:block">
+                    {PHASE_CODE[store.phase]} · {phaseName}
+                </span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg text-fg">
+                    <UserRound size={14} />
+                </span>
+            </button>
+
+            {open && (
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={t("serverless.profile.title")}
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-3 backdrop-blur-sm sm:p-6"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) setOpen(false);
+                    }}
+                >
+                    <div className="flex h-[min(82dvh,720px)] w-[min(920px,96vw)] flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-2xl motion-safe:animate-pop-in">
+                        <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+                            <div>
+                                <div className="font-mono text-[10px] tracking-[.16em] text-accent uppercase">
+                                    {t("serverless.profile.eyebrow")}
+                                </div>
+                                <h2 className="mt-1 font-display text-xl font-semibold text-fg">
+                                    {t("serverless.profile.title")}
+                                </h2>
+                            </div>
+                            <GhostButton
+                                bordered
+                                onClick={() => setOpen(false)}
+                                aria-label={t("common.close")}
+                                className="flex h-8 w-8 items-center justify-center p-0"
+                            >
+                                <X size={15} />
+                            </GhostButton>
+                        </header>
+
+                        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-auto md:grid-cols-[280px_1fr] md:overflow-hidden">
+                            <aside className="border-b border-border p-5 md:overflow-auto md:border-r md:border-b-0">
+                                <div className="mb-3 font-mono text-[10px] tracking-[.14em] text-muted uppercase">
+                                    {t("serverless.profile.navigation")}
+                                </div>
+                                <PhaseChips onPick={() => undefined} />
+                                <RevealToggles />
+                            </aside>
+                            <section className="min-h-0 p-5 md:overflow-auto">
+                                <div className="mb-4 flex items-center gap-2 border-b border-border/60 pb-3">
+                                    <BookOpen size={16} className="text-accent" />
+                                    <span className="font-display text-sm font-semibold text-fg">
+                                        {t("serverless.profile.howTo")} · {phaseName}
+                                    </span>
+                                </div>
+                                <PhaseHelpContent
+                                    phase={store.phase}
+                                    lineMode={reveals?.p2_line_mode === true}
+                                    p3wb={reveals?.p3_wb_plane === true}
+                                    p5Deep={reveals?.p5_deep === true}
+                                />
+                            </section>
+                        </div>
+
+                        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-3">
+                            <div className="flex items-center gap-3">
+                                <span className="font-mono text-[10px] tracking-[.14em] text-muted uppercase">
+                                    {t("common.language")}
+                                </span>
+                                <LanguageSwitcher />
+                            </div>
+                            <PrimarySettingsButton
+                                onClick={() => {
+                                    setOpen(false);
+                                    onOpenSettings?.();
+                                }}
+                                label={t("serverless.profile.settings")}
+                            />
+                        </footer>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+function PrimarySettingsButton({
+    onClick,
+    label,
+}: {
+    onClick: () => void;
+    label: string;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg"
+        >
+            <Database size={15} />
+            {label}
+        </button>
+    );
+}
+
+export function Header({ onOpenSettings }: { onOpenSettings?: () => void }) {
+    const { serverless } = useWorkshop();
+    return serverless ? (
+        <ServerlessHeader onOpenSettings={onOpenSettings} />
+    ) : (
+        <RoomHeader />
     );
 }
