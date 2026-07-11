@@ -3,7 +3,7 @@
     // assets. `pnpm build:singleplayer` emits the SPA to `.output/public`.
     // https://developers.cloudflare.com/workers/static-assets/
     "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "sitcon-camp-2026-ml-pt1",
+    "name": "reinvent-mlp",
     "compatibility_date": "2026-07-11",
     // Build the SPA before `wrangler deploy`/`dev` runs, so the deploy is
     // self-contained — Cloudflare Workers Builds only needs to run
