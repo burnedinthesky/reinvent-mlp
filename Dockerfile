@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-bookworm-slim AS dependencies
+FROM node:24-bookworm-slim AS dependencies
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -20,7 +20,7 @@ COPY . .
 RUN DATABASE_URL=file:/tmp/build.db pnpm db:generate
 RUN pnpm build:multiplayer
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
 ENV ENABLE_MULTIPLAYER=true
