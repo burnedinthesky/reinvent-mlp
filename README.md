@@ -336,9 +336,10 @@ The single-player build is a static SPA (no database, no server). `wrangler.json
 deploys it as a Cloudflare Worker serving
 [static assets](https://developers.cloudflare.com/workers/static-assets/), with
 `not_found_handling: single-page-application` giving SPA-style routing (any
-unmatched path serves `index.html`). Its `build.command` runs
-`pnpm build:singleplayer` automatically, so `wrangler deploy` is self-contained —
-it builds the SPA to `.output/public` and uploads it in one step.
+unmatched path serves `index.html`). Its `build.command` runs `prisma generate`
+(the SSR/prerender pass needs the generated client) and `pnpm build:singleplayer`
+automatically, so `wrangler deploy` is self-contained — it builds the SPA to
+`.output/public` and uploads it in one step.
 
 **Deploy from your machine:**
 

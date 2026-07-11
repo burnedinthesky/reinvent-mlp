@@ -8,8 +8,12 @@
     // Build the SPA before `wrangler deploy`/`dev` runs, so the deploy is
     // self-contained — Cloudflare Workers Builds only needs to run
     // `npx wrangler deploy`, no separate build command required.
+    // `prisma generate` first: the SSR/prerender pass compiles the server
+    // modules, which statically import the (git-ignored) generated Prisma
+    // client. The throwaway DATABASE_URL only satisfies the generator's
+    // datasource check — nothing connects to it.
     "build": {
-        "command": "pnpm build:singleplayer",
+        "command": "DATABASE_URL=file:/tmp/prisma-generate.db pnpm db:generate && pnpm build:singleplayer",
     },
     "assets": {
         "directory": "./.output/public",
